@@ -2,14 +2,21 @@
   "version": 2,
   "builds": [
     {
-      "src": "dist/main.js",
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "public"
+      }
+    },
+    {
+      "src": "vercel-func.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "dist/main.js"
+      "dest": "vercel-func.js"
     }
   ]
 }
