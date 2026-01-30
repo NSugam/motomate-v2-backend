@@ -1,0 +1,14 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '5001:5001'
+    env_file:
+      - .env
+    restart: unless-stopped
+    container_name: restaurant_be
+    image: restaurant_be
+    volumes:
+      - '/var/www/restaurant_uploads/:/app/uploads/'
