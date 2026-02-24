@@ -8,12 +8,9 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { IdDTO, optionalPagiSearchTermDTO } from '../../../src/common/dto';
-import { OrmWhereType } from '../../../src/common/orm.type';
-import {
-  GetUser,
-  UserFilter,
-} from '../../../src/decorators/get-user.decorator';
+import { IdDTO, optionalPagiSearchTermDTO } from 'src/common/dto';
+import { OrmWhereType } from 'src/common/orm.type';
+import { GetUser, UserFilter } from 'src/decorators/get-user.decorator';
 import { ILike } from 'typeorm';
 import { LoggedInUser } from '../user/user.type';
 import {

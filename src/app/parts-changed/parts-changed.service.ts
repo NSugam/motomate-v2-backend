@@ -6,8 +6,8 @@ import {
   FindManyFn,
   FindOneFn,
   FindOrFailFn,
-} from '../../../src/common/orm.type';
-import { generateTakeSkip } from '../../../src/helper/utils';
+} from 'src/common/orm.type';
+import { generateTakeSkip } from 'src/helper/utils';
 import { Repository } from 'typeorm';
 
 import { LoggedInUser } from '../user/user.type';

@@ -11,7 +11,6 @@ import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { join } from 'path';
 import { AuthMiddleware } from './app/auth/auth.middleware';
 import { AuthModule } from './app/auth/auth.module';
-import { MediaModule } from './app/media/media.module';
 import { PartsChangedModule } from './app/parts-changed/parts-changed.module';
 import { rolePermissionEntity } from './app/rbac/entities/rolePermission.entity';
 import { PermissionModule } from './app/rbac/permission/permission.module';
@@ -42,7 +41,6 @@ import { SuccessResponseInterceptor } from './interceptor/response.interceptor';
     RbacModule,
     UserModule,
     VehicleModule,
-    MediaModule,
     ServicingModule,
     PartsChangedModule,
   ],
