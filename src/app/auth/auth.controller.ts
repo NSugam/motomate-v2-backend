@@ -1,11 +1,16 @@
-import { Body, Controller, Post, Res } from '@nestjs/common';
+import { Body, Controller, Get, Post, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { CreateUserDto, LoginUserDto } from './data/dto';
-import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Get('health-check')
+  checkHealth() {
+    return 'Hello World';
+  }
 
   @Post('register')
   createUser(@Body() newUser: CreateUserDto) {
