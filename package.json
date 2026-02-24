@@ -1,6 +1,7 @@
 {
   "name": "motomate-v2",
   "version": "2.0.0",
+  "main": "dist/main.js",
   "description": "Motomate-v2",
   "author": "Sugam Neupane",
   "private": true,
