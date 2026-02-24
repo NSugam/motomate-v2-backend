@@ -1,6 +1,6 @@
-import { MediaTypeEnum } from 'src/common/common.enum';
+import { MediaTypeEnum } from '../../../src/common/common.enum';
 import { Column, Entity } from 'typeorm';
-import { CommonFields } from '../../common/base.entity';
+import { CommonFields } from '../../../src/common/base.entity';
 
 @Entity('t_media')
 export class Media extends CommonFields {

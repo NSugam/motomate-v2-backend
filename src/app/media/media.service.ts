@@ -1,8 +1,8 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MediaTypeEnum } from 'src/common/common.enum';
+import { MediaTypeEnum } from '../../../src/common/common.enum';
 import { In, Repository } from 'typeorm';
-import { LoggedInUser } from '../user/user.type';
+import { LoggedInUser } from '../../app/user/user.type';
 import { Media } from './media.entity';
 
 @Injectable()
