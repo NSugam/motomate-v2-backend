@@ -1,11 +1,13 @@
-import { partsSelectFields } from 'src/app/parts-changed/dto/parts.select';
-import { Servicing } from '../entities/servicing.entity';
+import { partsChangedSelectFields } from 'src/app/parts-changed/dto/parts-changed.select';
 
-export const servicingRelations: (keyof Servicing)[] = ['partsChanged'];
+export const servicingRelations = {
+  partsChanged: {
+    part: true,
+  },
+};
 
 export const servicingSelectFields = {
   id: true,
-  userId: true,
   createdAt: true,
   location: true,
   counter: true,
@@ -18,5 +20,5 @@ export const servicingSelectFields = {
 
 export const servicingSelectWithRelation = {
   ...servicingSelectFields,
-  partsChanged: partsSelectFields,
+  partsChanged: partsChangedSelectFields,
 };

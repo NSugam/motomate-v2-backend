@@ -8,7 +8,8 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { IdDTO } from 'src/common/dto';
+import { UserFilterType } from 'src/common/common.type';
+import { IdDTO, optionalPagiSearchTermDTO } from 'src/common/dto';
 import { OrmWhereType } from 'src/common/orm.type';
 import { GetUser, UserFilter } from 'src/decorators/get-user.decorator';
 import { ILike } from 'typeorm';
@@ -26,10 +27,39 @@ import { ServicingService } from './servicing.service';
 export class ServicingController {
   constructor(private readonly servicingService: ServicingService) {}
 
+  @Post()
+  create(@Body() body: CreateServicingDTO, @GetUser() user: LoggedInUser) {
+    return this.servicingService.create(body, user);
+  }
+
+  @Get('my')
+  myServicings(
+    @Query()
+    { searchTerm, ...pagination }: optionalPagiSearchTermDTO,
+    @UserFilter() { userId, vehicleId }: UserFilterType,
+  ) {
+    const filter: OrmWhereType<Servicing> = {
+      userId,
+      vehicle: { id: vehicleId },
+    };
+
+    if (searchTerm) filter.location = ILike(`%${searchTerm}%`);
+
+    return this.servicingService.findAndCountWithTotal(
+      filter,
+      servicingSelectWithRelation,
+      pagination,
+      {
+        createdAt: 'DESC',
+      },
+      servicingRelations,
+    );
+  }
+
   @Get()
   findAll(
     @Query() { searchTerm, vehicleId, ...pagination }: ServicingFilter,
-    @UserFilter() userId: string,
+    @UserFilter() { userId }: UserFilterType,
   ) {
     const filter: OrmWhereType<Servicing> = {
       userId,
@@ -50,7 +80,7 @@ export class ServicingController {
   }
 
   @Get(':id')
-  findOne(@Param() { id }: IdDTO, @UserFilter() userId: string) {
+  findOne(@Param() { id }: IdDTO, @UserFilter() { userId }: UserFilterType) {
     return this.servicingService.findOne(
       { id, userId },
       servicingSelectWithRelation,
@@ -58,26 +88,17 @@ export class ServicingController {
     );
   }
 
-  @Post(':vehicleId')
-  create(
-    @Param('vehicleId') vehicleId: string,
-    @Body() body: CreateServicingDTO,
-    @GetUser() user: LoggedInUser,
-  ) {
-    return this.servicingService.create(body, vehicleId, user);
-  }
-
   @Patch(':id')
   update(
     @Param() { id }: IdDTO,
     @Body() body: UpdateServicingDTO,
-    @UserFilter() userId: string,
+    @UserFilter() { userId }: UserFilterType,
   ) {
-    return this.servicingService.update(id, userId, body);
+    return this.servicingService.update(id, body, userId);
   }
 
   @Delete(':id')
-  delete(@Param() { id }: IdDTO, @UserFilter() userId: string) {
+  delete(@Param() { id }: IdDTO, @UserFilter() { userId }: UserFilterType) {
     return this.servicingService.delete(id, userId);
   }
 }

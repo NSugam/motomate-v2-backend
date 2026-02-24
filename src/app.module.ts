@@ -23,6 +23,7 @@ import { UserModule } from './app/user/user.module';
 import { VehicleModule } from './app/vehicle/vehicle.module';
 import { typeOrmConfigs } from './config/db-config';
 import { SuccessResponseInterceptor } from './interceptor/response.interceptor';
+import { PartModule } from './app/part/part.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { SuccessResponseInterceptor } from './interceptor/response.interceptor';
     RbacModule,
     UserModule,
     VehicleModule,
+    PartModule,
     ServicingModule,
     PartsChangedModule,
   ],

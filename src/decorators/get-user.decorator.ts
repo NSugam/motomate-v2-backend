@@ -11,15 +11,24 @@ export const GetUser = createParamDecorator(
 );
 
 export const UserFilter = createParamDecorator(
-  (_data: unknown, ctx: ExecutionContext): string | null => {
+  (
+    _data: unknown,
+    ctx: ExecutionContext,
+  ): { userId: string | null; vehicleId: string | null } => {
     const request = ctx.switchToHttp().getRequest<RequestWithRequiredUser>();
 
     let userId: string | null = null;
+    let vehicleId: string | null = null;
 
-    if (request.user.role === UserRoleENUM.SUPER_ADMIN) userId = null;
-    else userId = request.user.id;
+    if (request.user.role === UserRoleENUM.SUPER_ADMIN) {
+      userId = null;
+      vehicleId = null;
+    } else {
+      userId = request.user.id;
+      vehicleId = request.user.defaultVehicleId;
+    }
 
-    // return userId if not super admin
-    return userId;
+    // return ids if not super admin
+    return { userId, vehicleId };
   },
 );

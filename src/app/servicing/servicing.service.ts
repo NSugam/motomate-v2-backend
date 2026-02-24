@@ -6,15 +6,25 @@ import {
   FindManyFn,
   FindOneFn,
   FindOrFailFn,
+  OrmWhereType,
 } from 'src/common/orm.type';
 import { generateTakeSkip } from 'src/helper/utils';
-import { In, Repository } from 'typeorm';
+import {
+  FindOptionsOrder,
+  FindOptionsRelations,
+  FindOptionsSelect,
+  Repository,
+} from 'typeorm';
+import { Part } from '../part/entities/part.entity';
 import { PartsChanged } from '../parts-changed/entities/parts-changed.entity';
 import { LoggedInUser } from '../user/user.type';
 import { VehicleService } from '../vehicle/vehicle.service';
 import { CreateServicingDTO, UpdateServicingDTO } from './dto/servicing.dto';
 import { Servicing } from './entities/servicing.entity';
 
+type ServicingTotals = {
+  totalServicingCost: number;
+};
 @Injectable()
 export class ServicingService {
   constructor(
@@ -22,58 +32,124 @@ export class ServicingService {
     private readonly servicingRepo: Repository<Servicing>,
     @InjectRepository(PartsChanged)
     private readonly partsChangedRepo: Repository<PartsChanged>,
+    @InjectRepository(Part)
+    private readonly partRepo: Repository<Part>,
 
     private readonly vehicleService: VehicleService,
   ) {}
 
-  async create(
-    payload: CreateServicingDTO,
-    vehicleId: string,
-    user: LoggedInUser,
-  ) {
+  async create(payload: CreateServicingDTO, user: LoggedInUser) {
     const vehicle = await this.vehicleService.findOrFail({
-      id: vehicleId,
+      id: user.defaultVehicleId,
       userId: user.id,
     });
+
     const servicing = this.servicingRepo.create({
-      ...payload,
-      userId: user.id,
       vehicle,
+      location: payload.location,
+      counter: payload.counter,
+      totalCost: payload.totalCost,
+      englishDate: payload.englishDate,
+      odoReading: payload.odoReading,
+      remarks: payload.remarks,
+      userId: user.id,
     });
 
-    // Handling PartsChanged
-    if (payload.partsChangedIds && payload.partsChangedIds.length) {
-      const parts = await this.partsChangedRepo.findBy({
-        id: In(payload.partsChangedIds),
-      });
-      if (parts.length < payload.partsChangedIds.length)
-        throw new BadRequestException([`Some parts Id not found`]);
+    // attach parts changed
+    servicing.partsChanged = await Promise.all(
+      payload.partsChanged.map(async (p) => {
+        const part = await this.partRepo.findOneOrFail({
+          where: { id: p.partId, userId: user.id },
+        });
 
-      servicing.partsChanged = parts;
-    }
+        return this.partsChangedRepo.create({
+          part,
+          cost: p.cost,
+          userId: user.id,
+        });
+      }),
+    );
 
     const saved = await this.servicingRepo.save(servicing);
-    return { message: 'Servicing Added Successfully', id: saved.id };
+
+    return {
+      message: 'Servicing Created Successfully',
+      id: saved.id,
+    };
   }
 
-  async update(id: string, userId: string, payload: UpdateServicingDTO) {
-    const servicing = await this.findOrFail({ id, userId }, []);
+  async update(id: string, payload: UpdateServicingDTO, userId: string) {
+    const servicing = await this.servicingRepo.findOneOrFail({
+      where: { id, userId },
+      relations: ['partsChanged', 'partsChanged.part'],
+    });
 
-    const updatePayload = this.servicingRepo.merge(servicing, payload);
+    if (payload.location !== undefined) servicing.location = payload.location;
+    if (payload.counter !== undefined) servicing.counter = payload.counter;
+    if (payload.totalCost !== undefined)
+      servicing.totalCost = payload.totalCost;
+    if (payload.englishDate !== undefined)
+      servicing.englishDate = payload.englishDate;
+    if (payload.odoReading !== undefined)
+      servicing.odoReading = payload.odoReading;
+    if (payload.remarks !== undefined) servicing.remarks = payload.remarks;
 
-    // Handle partsChanged
-    if (payload.partsChangedIds) {
-      const parts = await this.partsChangedRepo.findBy({
-        id: In(payload.partsChangedIds),
-      });
-      if (parts.length < payload.partsChangedIds.length)
-        throw new BadRequestException([`Some parts Id not found`]);
+    // ===== PARTS SYNC LOGIC =====
+    if (payload.partsChanged) {
+      const existing = servicing.partsChanged;
 
-      servicing.partsChanged = parts;
+      const updatedParts = [];
+
+      for (const item of payload.partsChanged) {
+        // update existing record
+        if (item.id) {
+          const record = existing.find((p) => p.id === item.id);
+          if (!record) continue;
+
+          if (item.partId) {
+            record.part = await this.partRepo.findOneOrFail({
+              where: { id: item.partId, userId },
+            });
+          }
+
+          if (item.cost !== undefined) record.cost = item.cost;
+
+          updatedParts.push(record);
+        }
+
+        // add new record
+        else {
+          const part = await this.partRepo.findOneOrFail({
+            where: { id: item.partId, userId },
+          });
+
+          const newRecord = this.partsChangedRepo.create({
+            servicing,
+            part,
+            cost: item.cost,
+            userId,
+          });
+
+          updatedParts.push(newRecord);
+        }
+      }
+
+      // remove deleted parts
+      const updatedIds = updatedParts.filter((p) => p.id).map((p) => p.id);
+      const toDelete = existing.filter((p) => !updatedIds.includes(p.id));
+
+      if (toDelete.length) {
+        await this.partsChangedRepo.remove(toDelete);
+      }
+
+      servicing.partsChanged = updatedParts;
     }
 
-    await this.servicingRepo.save(updatePayload);
-    return { message: 'Servicing Updated Successfully' };
+    await this.servicingRepo.save(servicing);
+
+    return {
+      message: 'Servicing Updated Successfully',
+    };
   }
 
   findOne: FindOneFn<Servicing> = (where, select, relations) => {
@@ -113,6 +189,45 @@ export class ServicingService {
       skip,
     });
   };
+
+  async findAndCountWithTotal(
+    where: OrmWhereType<Servicing>,
+    select: FindOptionsSelect<Servicing>,
+    pagination: { take?: number; skip?: number },
+    order: FindOptionsOrder<Servicing>,
+    relations: FindOptionsRelations<Servicing>,
+  ): Promise<{
+    data: Servicing[];
+    count: number;
+    message: ServicingTotals;
+  }> {
+    const [data, count] = await this.servicingRepo.findAndCount({
+      where,
+      select,
+      relations,
+      order,
+      skip: pagination.skip,
+      take: pagination.take,
+    });
+
+    const totalsRaw = await this.servicingRepo
+      .createQueryBuilder('s')
+      .select('COALESCE(SUM(s.totalCost), 0)', 'totalServicingCost')
+      .where(where)
+      .getRawOne<{
+        totalServicingCost: string;
+      }>();
+
+    const message: ServicingTotals = {
+      totalServicingCost: Number(totalsRaw.totalServicingCost),
+    };
+
+    return {
+      data,
+      count,
+      message,
+    };
+  }
 
   async delete(id: string, userId: string) {
     await this.findOrFail({ id, userId });

@@ -1,16 +1,31 @@
-import { ApiProperty, PartialType } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreatePartsChangedDTO {
-  @ApiProperty({ example: 'Engine Oil' })
-  @IsNotEmpty()
+  @ApiPropertyOptional({ example: '1', description: 'Servicing ID' })
+  @IsOptional()
   @IsString()
-  partName: string;
+  servicingId: string;
 
-  @ApiProperty({ example: '1200', type: 'string' })
+  @ApiProperty({ example: '1', description: 'Part ID' })
   @IsNotEmpty()
   @IsString()
-  cost: number;
+  partId: string;
+
+  @ApiProperty({ example: '2025-02-02', description: 'English Date' })
+  @IsNotEmpty()
+  @IsString()
+  englishDate: string;
+
+  @ApiProperty({ example: 12000, required: false })
+  @IsOptional()
+  @IsNumber()
+  odoReading?: number;
+
+  @ApiProperty({ example: 1500.5, required: false })
+  @IsOptional()
+  @IsNumber()
+  cost?: number;
 }
 
 export class UpdatePartsChangedDTO extends PartialType(CreatePartsChangedDTO) {}
