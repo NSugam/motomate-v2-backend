@@ -12,6 +12,9 @@ export abstract class CommonFields extends BaseEntity {
   @Column({ type: 'bigint' })
   userId: string;
 
+  @Column({ type: 'bigint' })
+  vehicleId: string;
+
   @Column({
     name: 'created_at',
     type: 'timestamp',

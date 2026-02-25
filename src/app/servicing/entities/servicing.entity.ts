@@ -1,23 +1,10 @@
 import NepaliDate from 'nepali-date-converter';
 import { PartsChanged } from 'src/app/parts-changed/entities/parts-changed.entity';
-import { Vehicle } from 'src/app/vehicle/entities/vehicle.entity';
 import { CommonFields } from 'src/common/base.entity';
-import {
-  BeforeInsert,
-  BeforeUpdate,
-  Column,
-  Entity,
-  ManyToOne,
-  OneToMany,
-} from 'typeorm';
+import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany } from 'typeorm';
 
 @Entity('servicing')
 export class Servicing extends CommonFields {
-  @ManyToOne(() => Vehicle, (vehicle) => vehicle.servicing, {
-    onDelete: 'CASCADE',
-  })
-  vehicle: Vehicle;
-
   @Column()
   location: string;
 
@@ -48,7 +35,6 @@ export class Servicing extends CommonFields {
   @BeforeUpdate()
   syncNepaliDate() {
     if (!this.englishDate) return;
-
     const nepali = new NepaliDate(new Date(this.englishDate));
     this.nepaliDate = nepali.format('YYYY MMMM DD', 'np');
   }

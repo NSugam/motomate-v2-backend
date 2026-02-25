@@ -15,6 +15,11 @@ import { GetUser, UserFilter } from 'src/decorators/get-user.decorator';
 import { ILike } from 'typeorm';
 import { LoggedInUser } from '../user/user.type';
 import { CreatePartDTO, UpdatePartDTO } from './dto/part.dto';
+import {
+  partsRelations,
+  partsSelectFields,
+  partsSelectWithRelation,
+} from './dto/parts.select';
 import { Part } from './entities/part.entity';
 import { PartService } from './part.service';
 
@@ -29,14 +34,23 @@ export class PartController {
   ) {
     const filter: OrmWhereType<Part> = { userId };
     if (searchTerm) filter.name = ILike(`%${searchTerm}%`);
-    return this.partService.findAndCount(filter, [], pagination, {
-      createdAt: 'DESC',
-    });
+    return this.partService.findAndCount(
+      filter,
+      partsSelectFields,
+      pagination,
+      {
+        createdAt: 'DESC',
+      },
+    );
   }
 
   @Get(':id')
   findOne(@Param() { id }: IdDTO, @UserFilter() { userId }: UserFilterType) {
-    return this.partService.findOne({ id, userId }, []);
+    return this.partService.findOne(
+      { id, userId },
+      partsSelectWithRelation,
+      partsRelations,
+    );
   }
 
   @Post()

@@ -1,16 +1,31 @@
 import { Part } from '../entities/part.entity';
 
-export const partsChangedRelations: (keyof Part)[] = ['partsChangedRecords'];
+export const partsRelations: (keyof Part)[] = [
+  'partsChangedRecords',
+  'partReminder',
+];
 
-export const partsChangedSelectFields = {
+export const partsSelectFields = {
   id: true,
   createdAt: true,
   name: true,
   description: true,
-  cost: true,
-  part: {
+};
+
+export const partsSelectWithRelation = {
+  ...partsSelectFields,
+  partsChangedRecords: {
     id: true,
-    name: true,
-    description: true,
+    cost: true,
+    odoReading: true,
+    englishDate: true,
+    nepaliDate: true,
+    fromServicing: true,
+  },
+  partReminder: {
+    id: true,
+    type: true,
+    odoInterval: true,
+    dateInterval: true,
   },
 };

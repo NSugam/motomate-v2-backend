@@ -38,10 +38,7 @@ export class ServicingController {
     { searchTerm, ...pagination }: optionalPagiSearchTermDTO,
     @UserFilter() { userId, vehicleId }: UserFilterType,
   ) {
-    const filter: OrmWhereType<Servicing> = {
-      userId,
-      vehicle: { id: vehicleId },
-    };
+    const filter: OrmWhereType<Servicing> = { userId, vehicleId };
 
     if (searchTerm) filter.location = ILike(`%${searchTerm}%`);
 
@@ -61,10 +58,7 @@ export class ServicingController {
     @Query() { searchTerm, vehicleId, ...pagination }: ServicingFilter,
     @UserFilter() { userId }: UserFilterType,
   ) {
-    const filter: OrmWhereType<Servicing> = {
-      userId,
-      vehicle: { id: vehicleId },
-    };
+    const filter: OrmWhereType<Servicing> = { userId, vehicleId };
 
     if (searchTerm) filter.location = ILike(`%${searchTerm}%`);
 

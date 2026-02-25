@@ -27,10 +27,6 @@ export class CreateVehicleDTO {
   @IsNumber()
   afe?: number;
 
-  @ApiProperty({ example: '२०८२ असार २७' })
-  @IsString()
-  nepaliDate: string;
-
   @ApiProperty({ example: '2025-07-11' })
   @IsString()
   englishDate: string;

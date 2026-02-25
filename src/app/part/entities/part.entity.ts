@@ -1,6 +1,7 @@
-import { Column, Entity, OneToMany } from 'typeorm';
-import { CommonFields } from 'src/common/base.entity';
 import { PartsChanged } from 'src/app/parts-changed/entities/parts-changed.entity';
+import { PartsReminder } from 'src/app/parts-reminder/entities/parts-reminder.entity';
+import { CommonFields } from 'src/common/base.entity';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
 
 @Entity('part')
 export class Part extends CommonFields {
@@ -12,4 +13,11 @@ export class Part extends CommonFields {
 
   @OneToMany(() => PartsChanged, (partsChanged) => partsChanged.part)
   partsChangedRecords: PartsChanged[];
+
+  @OneToOne(() => PartsReminder, (reminder) => reminder.part, {
+    cascade: true,
+    nullable: true,
+  })
+  @JoinColumn()
+  partReminder: PartsReminder;
 }

@@ -18,7 +18,6 @@ import {
 import { Part } from '../part/entities/part.entity';
 import { PartsChanged } from '../parts-changed/entities/parts-changed.entity';
 import { LoggedInUser } from '../user/user.type';
-import { VehicleService } from '../vehicle/vehicle.service';
 import { CreateServicingDTO, UpdateServicingDTO } from './dto/servicing.dto';
 import { Servicing } from './entities/servicing.entity';
 
@@ -34,18 +33,10 @@ export class ServicingService {
     private readonly partsChangedRepo: Repository<PartsChanged>,
     @InjectRepository(Part)
     private readonly partRepo: Repository<Part>,
-
-    private readonly vehicleService: VehicleService,
   ) {}
 
   async create(payload: CreateServicingDTO, user: LoggedInUser) {
-    const vehicle = await this.vehicleService.findOrFail({
-      id: user.defaultVehicleId,
-      userId: user.id,
-    });
-
     const servicing = this.servicingRepo.create({
-      vehicle,
       location: payload.location,
       counter: payload.counter,
       totalCost: payload.totalCost,
@@ -53,6 +44,7 @@ export class ServicingService {
       odoReading: payload.odoReading,
       remarks: payload.remarks,
       userId: user.id,
+      vehicleId: user.defaultVehicleId,
     });
 
     // attach parts changed

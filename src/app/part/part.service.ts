@@ -1,17 +1,17 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, ILike } from 'typeorm';
-import { Part } from './entities/part.entity';
-import { CreatePartDTO, UpdatePartDTO } from './dto/part.dto';
-import { LoggedInUser } from '../user/user.type';
-import { generateTakeSkip } from 'src/helper/utils';
 import {
+  FailOnFoundFn,
+  FindAndCountFn,
+  FindManyFn,
   FindOneFn,
   FindOrFailFn,
-  FindManyFn,
-  FindAndCountFn,
-  FailOnFoundFn,
 } from 'src/common/orm.type';
+import { generateTakeSkip } from 'src/helper/utils';
+import { ILike, Repository } from 'typeorm';
+import { LoggedInUser } from '../user/user.type';
+import { CreatePartDTO, UpdatePartDTO } from './dto/part.dto';
+import { Part } from './entities/part.entity';
 
 @Injectable()
 export class PartService {
@@ -29,7 +29,11 @@ export class PartService {
         `Part Already Exists With Id ${existing.id}`,
       );
 
-    const part = this.partRepo.create({ ...payload, userId: user.id });
+    const part = this.partRepo.create({
+      ...payload,
+      userId: user.id,
+      vehicleId: user.defaultVehicleId,
+    });
     await this.partRepo.save(part);
     return { message: 'Part Created Successfully', id: part.id };
   }

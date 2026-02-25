@@ -49,6 +49,7 @@ export class PartsChangedService {
       englishDate: payload.englishDate,
       cost: payload.cost,
       userId: user.id,
+      vehicleId: user.defaultVehicleId,
     });
 
     const saved = await this.partsChangedRepo.save(data);

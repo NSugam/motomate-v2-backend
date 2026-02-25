@@ -25,6 +25,7 @@ import { VehicleModule } from './app/vehicle/vehicle.module';
 import { typeOrmConfigs } from './config/db-config';
 import { HealthModule } from './health/health.module';
 import { SuccessResponseInterceptor } from './interceptor/response.interceptor';
+import { PartsReminderModule } from './app/parts-reminder/parts-reminder.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { SuccessResponseInterceptor } from './interceptor/response.interceptor';
     PartModule,
     ServicingModule,
     PartsChangedModule,
+    PartsReminderModule,
   ],
   controllers: [],
   providers: [

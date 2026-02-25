@@ -8,6 +8,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { UserFilterType } from 'src/common/common.type';
 import { IdDTO, optionalPagiSearchTermDTO } from 'src/common/dto';
 import { OrmWhereType } from 'src/common/orm.type';
 import { GetUser, UserFilter } from 'src/decorators/get-user.decorator';
@@ -28,7 +29,7 @@ export class VehicleController {
   @Get('my-default')
   myDefaultVehicle(@GetUser() user: LoggedInUser) {
     return this.vehicleService.findOrFail(
-      { userId: user.id, id: user.defaultVehicleId },
+      { user: { id: user.id }, id: user.defaultVehicleId },
       vehicleSelectWithRelation,
       vehicleRelations,
     );
@@ -37,9 +38,9 @@ export class VehicleController {
   @Get()
   findAll(
     @Query() { searchTerm, ...pagination }: optionalPagiSearchTermDTO,
-    @UserFilter() userId: string | null,
+    @UserFilter() { userId }: UserFilterType,
   ) {
-    const filter: OrmWhereType<Vehicle> = { userId };
+    const filter: OrmWhereType<Vehicle> = { user: { id: userId } };
     if (searchTerm) filter.brand = ILike(`%${searchTerm}%`);
     return this.vehicleService.findAndCount(
       filter,
@@ -53,9 +54,9 @@ export class VehicleController {
   }
 
   @Get(':id')
-  findOne(@Param() { id }: IdDTO, @UserFilter() userId: string | null) {
+  findOne(@Param() { id }: IdDTO, @UserFilter() { userId }: UserFilterType) {
     return this.vehicleService.findOrFail(
-      { id, userId },
+      { id, user: { id: userId } },
       vehicleSelectWithRelation,
       vehicleRelations,
     );
@@ -70,13 +71,13 @@ export class VehicleController {
   update(
     @Body() body: UpdateVehicleDTO,
     @Param() { id }: IdDTO,
-    @UserFilter() userId: string | null,
+    @UserFilter() { userId }: UserFilterType,
   ) {
     return this.vehicleService.update(id, userId, body);
   }
 
   @Delete(':id')
-  delete(@Param() { id }: IdDTO, @UserFilter() userId: string | null) {
+  delete(@Param() { id }: IdDTO, @UserFilter() { userId }: UserFilterType) {
     return this.vehicleService.delete(id, userId);
   }
 }

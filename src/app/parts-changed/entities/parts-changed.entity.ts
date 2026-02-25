@@ -36,7 +36,6 @@ export class PartsChanged extends CommonFields {
   @BeforeUpdate()
   syncNepaliDate() {
     if (!this.englishDate) return;
-
     const nepali = new NepaliDate(new Date(this.englishDate));
     this.nepaliDate = nepali.format('YYYY MMMM DD', 'np');
     this.fromServicing = !!this.servicing;

@@ -1,10 +1,26 @@
-import { Servicing } from 'src/app/servicing/entities/servicing.entity';
+import NepaliDate from 'nepali-date-converter';
 import { User } from 'src/app/user/entities/user.entity';
-import { CommonFields } from 'src/common/base.entity';
-import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
+import {
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('vehicles')
-export class Vehicle extends CommonFields {
+export class Vehicle {
+  @PrimaryGeneratedColumn({ type: 'bigint' })
+  id: string;
+
+  @Column({
+    name: 'created_at',
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  createdAt: Date;
+
   @ManyToOne(() => User, (user) => user.vehicles)
   user: User;
 
@@ -26,12 +42,17 @@ export class Vehicle extends CommonFields {
   @Column({ type: 'float', default: 0 })
   afe: number;
 
-  @Column({ type: 'text' })
-  nepaliDate: string;
-
-  @Column({ type: 'date' })
+  @Column({ type: 'date', nullable: true })
   englishDate: string;
 
-  @OneToMany(() => Servicing, (servicing) => servicing.vehicle)
-  servicing: Servicing[];
+  @Column({ nullable: true })
+  nepaliDate: string;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  syncNepaliDate() {
+    if (!this.englishDate) return;
+    const nepali = new NepaliDate(new Date(this.englishDate));
+    this.nepaliDate = nepali.format('YYYY MMMM DD', 'np');
+  }
 }

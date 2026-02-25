@@ -26,7 +26,7 @@ export class VehicleService {
   async create(payload: CreateVehicleDTO, user: LoggedInUser) {
     const data = this.vehicleRepo.create({
       ...payload,
-      userId: user.id,
+      user: { id: user.id },
     });
 
     const vehicle = await this.vehicleRepo.save(data);
@@ -67,14 +67,14 @@ export class VehicleService {
   };
 
   async update(id: string, userId: string | null, payload: UpdateVehicleDTO) {
-    const data = await this.findOrFail({ id, userId }, []);
+    const data = await this.findOrFail({ id, user: { id: userId } }, []);
     const updatePayload = this.vehicleRepo.merge(data, payload);
     await this.vehicleRepo.update(id, updatePayload);
     return { message: 'Vehicle Updated Successfully' };
   }
 
   async delete(id: string, userId: string | null) {
-    await this.findOrFail({ id, userId });
+    await this.findOrFail({ id, user: { id: userId } });
     await this.vehicleRepo.delete(id);
     return { message: 'Vehicle Deleted Successfully' };
   }
