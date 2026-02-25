@@ -11,6 +11,7 @@ import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { join } from 'path';
 import { AuthMiddleware } from './app/auth/auth.middleware';
 import { AuthModule } from './app/auth/auth.module';
+import { PartModule } from './app/part/part.module';
 import { PartsChangedModule } from './app/parts-changed/parts-changed.module';
 import { rolePermissionEntity } from './app/rbac/entities/rolePermission.entity';
 import { PermissionModule } from './app/rbac/permission/permission.module';
@@ -22,9 +23,8 @@ import { User } from './app/user/entities/user.entity';
 import { UserModule } from './app/user/user.module';
 import { VehicleModule } from './app/vehicle/vehicle.module';
 import { typeOrmConfigs } from './config/db-config';
-import { SuccessResponseInterceptor } from './interceptor/response.interceptor';
-import { PartModule } from './app/part/part.module';
 import { HealthModule } from './health/health.module';
+import { SuccessResponseInterceptor } from './interceptor/response.interceptor';
 
 @Module({
   imports: [
@@ -36,6 +36,7 @@ import { HealthModule } from './health/health.module';
       rootPath: join(__dirname, '..'),
     }),
 
+    HealthModule,
     AuthModule,
     RoleModule,
     RouteModule,
@@ -46,7 +47,6 @@ import { HealthModule } from './health/health.module';
     PartModule,
     ServicingModule,
     PartsChangedModule,
-    HealthModule,
   ],
   controllers: [],
   providers: [
