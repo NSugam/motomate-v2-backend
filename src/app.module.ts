@@ -62,9 +62,10 @@ export class AppModule implements NestModule {
     consumer
       .apply(AuthMiddleware)
       .exclude(
+        { path: 'health-check', method: RequestMethod.HEAD },
+        { path: 'health-check', method: RequestMethod.GET },
         { path: 'auth/login', method: RequestMethod.POST },
         { path: 'auth/register', method: RequestMethod.POST },
-        { path: 'auth/health-check', method: RequestMethod.GET },
       )
       .forRoutes('*');
   }
