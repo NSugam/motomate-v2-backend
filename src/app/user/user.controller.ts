@@ -16,6 +16,7 @@ import { userRelations, userSelectWithRelation } from './dto/user.select.dto';
 import { User } from './entities/user.entity';
 import { UserService } from './user.service';
 import { LoggedInUser } from './user.type';
+import { UserFilterType } from 'src/common/common.type';
 
 @Controller('user')
 export class UserController {
@@ -29,7 +30,7 @@ export class UserController {
   @Get()
   findAll(
     @Query() { searchTerm, role, ...pagination }: RoleDto,
-    @UserFilter() userId: string | null,
+    @UserFilter() { userId }: UserFilterType,
   ) {
     const filter: OrmWhereType<User> = { id: userId };
     if (searchTerm) filter.fullname = ILike(`%${searchTerm}%`);
@@ -47,7 +48,7 @@ export class UserController {
   }
 
   @Get(':id')
-  findById(@Param('id') id: string, @UserFilter() userId: string | null) {
+  findById(@Param('id') id: string, @UserFilter() { userId }: UserFilterType) {
     return this.usersService.findOrFail(
       { id: userId ? userId : id },
       userSelectWithRelation,
@@ -59,13 +60,13 @@ export class UserController {
   update(
     @Param('id') id: string,
     @Body() updateDetails: UpdateUserDto,
-    @UserFilter() userId: string | null,
+    @UserFilter() { userId }: UserFilterType,
   ) {
     return this.usersService.update(userId ? userId : id, updateDetails);
   }
 
   @Delete(':id')
-  delete(@Param('id') id: string, @UserFilter() userId: string | null) {
+  delete(@Param('id') id: string, @UserFilter() { userId }: UserFilterType) {
     return this.usersService.deleteById(userId ? userId : id);
   }
 }

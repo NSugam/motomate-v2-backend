@@ -15,11 +15,7 @@ import { GetUser, UserFilter } from 'src/decorators/get-user.decorator';
 import { ILike } from 'typeorm';
 import { LoggedInUser } from '../user/user.type';
 import { CreatePartDTO, UpdatePartDTO } from './dto/part.dto';
-import {
-  partsRelations,
-  partsSelectFields,
-  partsSelectWithRelation,
-} from './dto/parts.select';
+import { partsRelations, partsSelectWithRelation } from './dto/parts.select';
 import { Part } from './entities/part.entity';
 import { PartService } from './part.service';
 
@@ -36,11 +32,12 @@ export class PartController {
     if (searchTerm) filter.name = ILike(`%${searchTerm}%`);
     return this.partService.findAndCount(
       filter,
-      partsSelectFields,
+      partsSelectWithRelation,
       pagination,
       {
         createdAt: 'DESC',
       },
+      partsRelations,
     );
   }
 
