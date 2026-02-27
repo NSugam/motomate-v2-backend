@@ -1,12 +1,17 @@
 // parts-reminder.dto.ts
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
+import {
+  IsDefined,
+  IsEnum,
+  IsInt,
+  IsString,
+  ValidateIf,
+} from 'class-validator';
 import { ReminderTypeENUM } from './reminder.types';
 
 export class CreatePartsReminderDTO {
   @ApiProperty({
-    description: 'ID of the part to link this reminder to',
-    example: 1,
+    example: '1',
   })
   @IsString()
   partId: string;
@@ -15,18 +20,26 @@ export class CreatePartsReminderDTO {
   @IsEnum(ReminderTypeENUM)
   type: ReminderTypeENUM;
 
-  @ApiPropertyOptional({
-    example: 2000,
+  @ApiPropertyOptional({ example: 2000 })
+  @ValidateIf(
+    (o: CreatePartsReminderDTO) =>
+      o.type === ReminderTypeENUM.ODO || o.type === ReminderTypeENUM.BOTH,
+  )
+  @IsDefined({
+    message: 'odoInterval is required for ODO or BOTH reminder type',
   })
   @IsInt()
-  @IsOptional()
   odoInterval?: number;
 
-  @ApiPropertyOptional({
-    example: 30,
+  @ApiPropertyOptional({ example: 30 })
+  @ValidateIf(
+    (o: CreatePartsReminderDTO) =>
+      o.type === ReminderTypeENUM.DATE || o.type === ReminderTypeENUM.BOTH,
+  )
+  @IsDefined({
+    message: 'dateInterval is required for DATE or BOTH reminder type',
   })
   @IsInt()
-  @IsOptional()
   dateInterval?: number;
 }
 

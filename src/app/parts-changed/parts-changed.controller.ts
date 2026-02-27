@@ -8,6 +8,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { ApiOperation } from '@nestjs/swagger';
 import { UserFilterType } from 'src/common/common.type';
 import { IdDTO } from 'src/common/dto';
 import { OrmWhereType } from 'src/common/orm.type';
@@ -25,7 +26,6 @@ import {
 } from './dto/parts-changed.select';
 import { PartsChanged } from './entities/parts-changed.entity';
 import { PartsChangedService } from './parts-changed.service';
-import { ApiOperation } from '@nestjs/swagger';
 
 @Controller('parts-changed')
 export class PartsChangedController {
@@ -35,13 +35,13 @@ export class PartsChangedController {
   findAll(
     @Query()
     { searchTerm, fromServicing, ...pagination }: PartsChangedFilterDTO,
-    @UserFilter() { userId }: UserFilterType,
+    @UserFilter() { userId, vehicleId }: UserFilterType,
   ) {
-    const filter: OrmWhereType<PartsChanged> = { userId };
+    const filter: OrmWhereType<PartsChanged> = { userId, vehicleId };
     if (searchTerm) filter.part = { name: ILike(`%${searchTerm}%`) };
     if (fromServicing !== undefined) filter.fromServicing = fromServicing;
 
-    return this.partsChangedService.findAndCount(
+    return this.partsChangedService.findAndCountWithTotal(
       filter,
       partsChangedSelectFields,
       pagination,

@@ -77,8 +77,16 @@ export class PartsReminderService {
   }
 
   async delete(id: string, userId: string) {
-    await this.findOrFail({ id, userId });
-    await this.reminderRepo.delete(id);
+    const reminder = await this.findOrFail({ id, userId }, [], ['part']);
+
+    //unlink relation from Part
+    if (reminder.part) {
+      reminder.part.partReminder = null;
+      await this.partRepo.save(reminder.part);
+    }
+
+    await this.reminderRepo.remove(reminder);
+
     return { message: 'Parts Reminder Deleted Successfully' };
   }
 }

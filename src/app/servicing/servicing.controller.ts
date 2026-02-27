@@ -9,7 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { UserFilterType } from 'src/common/common.type';
-import { IdDTO, optionalPagiSearchTermDTO } from 'src/common/dto';
+import { IdDTO } from 'src/common/dto';
 import { OrmWhereType } from 'src/common/orm.type';
 import { GetUser, UserFilter } from 'src/decorators/get-user.decorator';
 import { ILike } from 'typeorm';
@@ -32,37 +32,17 @@ export class ServicingController {
     return this.servicingService.create(body, user);
   }
 
-  @Get('my')
-  myServicings(
-    @Query()
-    { searchTerm, ...pagination }: optionalPagiSearchTermDTO,
+  @Get()
+  findAll(
+    @Query() { searchTerm, vehicleIdFilter, ...pagination }: ServicingFilter,
     @UserFilter() { userId, vehicleId }: UserFilterType,
   ) {
     const filter: OrmWhereType<Servicing> = { userId, vehicleId };
 
     if (searchTerm) filter.location = ILike(`%${searchTerm}%`);
+    if (vehicleIdFilter) filter.vehicleId = vehicleIdFilter;
 
     return this.servicingService.findAndCountWithTotal(
-      filter,
-      servicingSelectWithRelation,
-      pagination,
-      {
-        createdAt: 'DESC',
-      },
-      servicingRelations,
-    );
-  }
-
-  @Get()
-  findAll(
-    @Query() { searchTerm, vehicleId, ...pagination }: ServicingFilter,
-    @UserFilter() { userId }: UserFilterType,
-  ) {
-    const filter: OrmWhereType<Servicing> = { userId, vehicleId };
-
-    if (searchTerm) filter.location = ILike(`%${searchTerm}%`);
-
-    return this.servicingService.findAndCount(
       filter,
       servicingSelectWithRelation,
       pagination,
@@ -86,9 +66,9 @@ export class ServicingController {
   update(
     @Param() { id }: IdDTO,
     @Body() body: UpdateServicingDTO,
-    @UserFilter() { userId }: UserFilterType,
+    @UserFilter() { userId, vehicleId }: UserFilterType,
   ) {
-    return this.servicingService.update(id, body, userId);
+    return this.servicingService.update(id, body, userId, vehicleId);
   }
 
   @Delete(':id')

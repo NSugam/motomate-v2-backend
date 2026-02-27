@@ -4,7 +4,6 @@ export const vehicleRelations: (keyof Vehicle)[] = [];
 
 export const vehicleSelectFields = {
   id: true,
-  userId: true,
   createdAt: true,
   brand: true,
   model: true,

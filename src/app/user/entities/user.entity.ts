@@ -1,5 +1,12 @@
 import { Vehicle } from 'src/app/vehicle/entities/vehicle.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { UserRoleENUM } from '../user.type';
 
 @Entity('users')
@@ -7,8 +14,12 @@ export class User {
   @PrimaryGeneratedColumn({ type: 'bigint' })
   id: string;
 
-  @Column({ type: 'bigint', nullable: true })
+  @Column({ type: 'bigint', name: 'defaultVehicleId', nullable: true })
   defaultVehicleId: string;
+
+  @OneToOne(() => Vehicle, (vehicle) => vehicle.user, { nullable: true })
+  @JoinColumn({ name: 'defaultVehicleId' })
+  defaultVehicle: Vehicle;
 
   @Column({
     name: 'created_at',
@@ -26,11 +37,17 @@ export class User {
   @Column({ type: 'text', unique: true })
   email: string;
 
+  @Column({ type: 'boolean', default: true })
+  verified: boolean;
+
   @Column({ type: 'text', nullable: true, unique: true })
   phone: string;
 
   @Column({ type: 'text' })
   password: string;
+
+  @Column({ type: 'text', nullable: true })
+  ExpoToken: string;
 
   @Column({
     type: 'enum',

@@ -29,7 +29,7 @@ export class VehicleController {
   @Get('my-default')
   myDefaultVehicle(@GetUser() user: LoggedInUser) {
     return this.vehicleService.findOrFail(
-      { user: { id: user.id }, id: user.defaultVehicleId },
+      { id: user.defaultVehicleId },
       vehicleSelectWithRelation,
       vehicleRelations,
     );

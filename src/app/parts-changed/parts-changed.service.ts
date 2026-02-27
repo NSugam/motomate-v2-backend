@@ -6,9 +6,15 @@ import {
   FindManyFn,
   FindOneFn,
   FindOrFailFn,
+  OrmWhereType,
 } from 'src/common/orm.type';
 import { generateTakeSkip } from 'src/helper/utils';
-import { Repository } from 'typeorm';
+import {
+  FindOptionsOrder,
+  FindOptionsRelations,
+  FindOptionsSelect,
+  Repository,
+} from 'typeorm';
 
 import { Part } from '../part/entities/part.entity';
 import { Servicing } from '../servicing/entities/servicing.entity';
@@ -18,6 +24,10 @@ import {
   UpdatePartsChangedDTO,
 } from './dto/parts-changed.dto';
 import { PartsChanged } from './entities/parts-changed.entity';
+
+type PartsChangedTotals = {
+  totalPartsCost: number;
+};
 
 @Injectable()
 export class PartsChangedService {
@@ -91,6 +101,46 @@ export class PartsChangedService {
       skip,
     });
   };
+
+  async findAndCountWithTotal(
+    where: OrmWhereType<PartsChanged>,
+    select: FindOptionsSelect<PartsChanged>,
+    pagination: { take?: number; skip?: number },
+    order: FindOptionsOrder<PartsChanged>,
+    relations: FindOptionsRelations<PartsChanged>,
+  ): Promise<{
+    data: PartsChanged[];
+    count: number;
+    message: PartsChangedTotals;
+  }> {
+    const [data, count] = await this.partsChangedRepo.findAndCount({
+      where,
+      select,
+      relations,
+      order,
+      skip: pagination.skip,
+      take: pagination.take,
+    });
+
+    const totalsRaw = await this.partsChangedRepo
+      .createQueryBuilder('pc')
+      .select('COALESCE(SUM(pc.cost), 0)', 'totalPartsCost')
+      .where(where)
+      .andWhere('pc.fromServicing = :fromServicing', { fromServicing: false })
+      .getRawOne<{
+        totalPartsCost: string;
+      }>();
+
+    const message: PartsChangedTotals = {
+      totalPartsCost: Number(totalsRaw.totalPartsCost),
+    };
+
+    return {
+      data,
+      count,
+      message,
+    };
+  }
 
   async update(id: string, payload: UpdatePartsChangedDTO, userId: string) {
     const data = await this.findOrFail({ id, userId });

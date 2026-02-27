@@ -9,7 +9,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-@Entity('vehicles')
+@Entity('vehicle')
 export class Vehicle {
   @PrimaryGeneratedColumn({ type: 'bigint' })
   id: string;

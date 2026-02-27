@@ -58,6 +58,8 @@ export class ServicingService {
           part,
           cost: p.cost,
           userId: user.id,
+          vehicleId: user.defaultVehicleId,
+          fromServicing: true,
         });
       }),
     );
@@ -70,7 +72,12 @@ export class ServicingService {
     };
   }
 
-  async update(id: string, payload: UpdateServicingDTO, userId: string) {
+  async update(
+    id: string,
+    payload: UpdateServicingDTO,
+    userId: string,
+    vehicleId: string,
+  ) {
     const servicing = await this.servicingRepo.findOneOrFail({
       where: { id, userId },
       relations: ['partsChanged', 'partsChanged.part'],
@@ -120,6 +127,8 @@ export class ServicingService {
             part,
             cost: item.cost,
             userId,
+            vehicleId,
+            fromServicing: true,
           });
 
           updatedParts.push(newRecord);

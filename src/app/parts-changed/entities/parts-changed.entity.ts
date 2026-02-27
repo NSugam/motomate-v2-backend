@@ -20,7 +20,7 @@ export class PartsChanged extends CommonFields {
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   cost: number;
 
-  @Column({ type: 'bigint', nullable: true })
+  @Column({ type: 'int', nullable: true })
   odoReading: number;
 
   @Column({ type: 'date', nullable: true })
@@ -38,6 +38,5 @@ export class PartsChanged extends CommonFields {
     if (!this.englishDate) return;
     const nepali = new NepaliDate(new Date(this.englishDate));
     this.nepaliDate = nepali.format('YYYY MMMM DD', 'np');
-    this.fromServicing = !!this.servicing;
   }
 }

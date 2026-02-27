@@ -9,10 +9,10 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { join } from 'path';
-import { AuthMiddleware } from './app/auth/auth.middleware';
 import { AuthModule } from './app/auth/auth.module';
 import { PartModule } from './app/part/part.module';
 import { PartsChangedModule } from './app/parts-changed/parts-changed.module';
+import { PartsReminderModule } from './app/parts-reminder/parts-reminder.module';
 import { rolePermissionEntity } from './app/rbac/entities/rolePermission.entity';
 import { PermissionModule } from './app/rbac/permission/permission.module';
 import { RbacModule } from './app/rbac/rbac.module';
@@ -25,7 +25,8 @@ import { VehicleModule } from './app/vehicle/vehicle.module';
 import { typeOrmConfigs } from './config/db-config';
 import { HealthModule } from './health/health.module';
 import { SuccessResponseInterceptor } from './interceptor/response.interceptor';
-import { PartsReminderModule } from './app/parts-reminder/parts-reminder.module';
+import { AuthMiddleware } from './middlewares/auth.middleware';
+import { VehicleMiddleware } from './middlewares/vehicle.middleware';
 
 @Module({
   imports: [
@@ -62,7 +63,7 @@ import { PartsReminderModule } from './app/parts-reminder/parts-reminder.module'
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(AuthMiddleware)
+      .apply(AuthMiddleware, VehicleMiddleware)
       .exclude(
         { path: 'health-check', method: RequestMethod.HEAD },
         { path: 'health-check', method: RequestMethod.GET },

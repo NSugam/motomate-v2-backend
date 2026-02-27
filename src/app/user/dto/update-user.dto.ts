@@ -21,4 +21,9 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   defaultVehicleId: string;
+
+  @ApiPropertyOptional({ example: 'ExponentPushToken[axnakjkasddfopk]' })
+  @IsOptional()
+  @IsString()
+  ExpoToken: string;
 }

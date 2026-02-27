@@ -12,15 +12,17 @@ import {
 } from 'src/common/orm.type';
 import { generateTakeSkip } from 'src/helper/utils';
 import { Repository } from 'typeorm';
+import { User } from '../user/entities/user.entity';
 import { LoggedInUser } from '../user/user.type';
 import { CreateVehicleDTO, UpdateVehicleDTO } from './dto/vehicle.dto';
 import { Vehicle } from './entities/vehicle.entity';
-
 @Injectable()
 export class VehicleService {
   constructor(
     @InjectRepository(Vehicle)
     private readonly vehicleRepo: Repository<Vehicle>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
   ) {}
 
   async create(payload: CreateVehicleDTO, user: LoggedInUser) {
@@ -30,6 +32,8 @@ export class VehicleService {
     });
 
     const vehicle = await this.vehicleRepo.save(data);
+    await this.userRepo.update(user.id, { defaultVehicleId: vehicle.id });
+
     return { message: 'Vehicle Created Successfully', id: vehicle.id };
   }
 

@@ -13,6 +13,8 @@ export interface LoggedInUser {
   fullname: string;
   username: string;
   email: string;
+  verified: boolean;
   role?: UserRoleENUM;
   vehicles?: Vehicle[];
+  ExpoToken?: string;
 }

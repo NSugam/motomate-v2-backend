@@ -31,7 +31,7 @@ import { PartsReminderService } from './parts-reminder.service';
 export class PartsReminderController {
   constructor(private readonly reminderService: PartsReminderService) {}
 
-  @Get('my')
+  @Get()
   findAll(
     @Query() { searchTerm, ...pagination }: optionalPagiSearchTermDTO,
     @UserFilter() { userId, vehicleId }: UserFilterType,
