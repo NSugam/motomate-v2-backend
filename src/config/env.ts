@@ -4,6 +4,7 @@ dotenv.config();
 export const env = {
   PORT: process.env.PORT,
   NODE_ENV: process.env.NODE_ENV || 'dev',
+  isProd: process.env.NODE_ENV !== 'dev',
 
   JWT_EXPIRE: process.env.JWT_EXPIRE || '1d',
   JWT_SECRET: process.env.JWT_SECRET,

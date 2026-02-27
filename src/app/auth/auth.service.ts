@@ -58,10 +58,11 @@ export class AuthService {
     const token = jwt.sign({ userId: userData.id }, JWT_SECRET, {
       expiresIn: '7d',
     });
+    console.log(env.NODE_ENV);
 
     res.cookie('_xf_', token, {
-      httpOnly: true,
-      secure: true, // true for swagger and production in https
+      httpOnly: env.isProd ? true : false,
+      secure: env.isProd ? true : false, // true for swagger and production in https
       sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
       // maxAge: 60 * 60 * 1000, // 1 hr
