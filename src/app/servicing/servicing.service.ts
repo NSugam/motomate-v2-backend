@@ -68,7 +68,7 @@ export class ServicingService {
 
     return {
       message: 'Servicing Created Successfully',
-      id: saved.id,
+      saved,
     };
   }
 
@@ -150,6 +150,7 @@ export class ServicingService {
 
     return {
       message: 'Servicing Updated Successfully',
+      data: servicing,
     };
   }
 

@@ -9,6 +9,7 @@ import {
 } from 'src/common/orm.type';
 import { generateTakeSkip } from 'src/helper/utils';
 import { ILike, Repository } from 'typeorm';
+import { PartsChanged } from '../parts-changed/entities/parts-changed.entity';
 import { LoggedInUser } from '../user/user.type';
 import { CreatePartDTO, UpdatePartDTO } from './dto/part.dto';
 import { Part } from './entities/part.entity';
@@ -18,6 +19,8 @@ export class PartService {
   constructor(
     @InjectRepository(Part)
     private readonly partRepo: Repository<Part>,
+    @InjectRepository(PartsChanged)
+    private readonly partsChangedRepo: Repository<PartsChanged>,
   ) {}
 
   async create(payload: CreatePartDTO, user: LoggedInUser) {
@@ -80,8 +83,27 @@ export class PartService {
   }
 
   async delete(id: string, userId: string) {
-    await this.findOrFail({ id, userId });
-    await this.partRepo.delete(id);
-    return { message: 'Part Deleted Successfully' };
+    const part = await this.partRepo.findOne({ where: { id, userId } });
+    if (!part) throw new BadRequestException('Part not found');
+
+    // Check if used in Servicing
+    const usedInServicing = await this.partsChangedRepo.count({
+      where: { part: { id }, fromServicing: true },
+    });
+    if (usedInServicing > 0)
+      throw new BadRequestException('Cannot delete: Part is used in servicing');
+
+    // Check if used in PartsChanged
+    const usedInPartsChanged = await this.partsChangedRepo.count({
+      where: { part: { id } },
+    });
+    if (usedInPartsChanged > 0)
+      throw new BadRequestException(
+        'Cannot delete: Part is used in parts changed records',
+      );
+
+    // Safe to delete
+    await this.partRepo.remove(part);
+    return { message: 'Part deleted successfully' };
   }
 }

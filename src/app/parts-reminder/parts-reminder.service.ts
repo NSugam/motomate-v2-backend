@@ -9,6 +9,7 @@ import {
   CreatePartsReminderDTO,
   UpdatePartsReminderDTO,
 } from './dto/parts-reminder.dto';
+import { ReminderTypeENUM } from './dto/reminder.types';
 import { PartsReminder } from './entities/parts-reminder.entity';
 
 @Injectable()
@@ -71,6 +72,16 @@ export class PartsReminderService {
       data.odoInterval = payload.odoInterval;
     if (payload.dateInterval !== undefined)
       data.dateInterval = payload.dateInterval;
+
+    if (payload.type === ReminderTypeENUM.BOTH) {
+      data.odoInterval = payload.odoInterval;
+      data.dateInterval = payload.dateInterval;
+    } else {
+      data.odoInterval =
+        payload.type === ReminderTypeENUM.ODO ? payload.odoInterval : null;
+      data.dateInterval =
+        payload.type === ReminderTypeENUM.DATE ? payload.dateInterval : null;
+    }
 
     await this.reminderRepo.save(data);
     return { message: 'Parts Reminder Updated Successfully' };

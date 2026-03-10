@@ -27,6 +27,7 @@ import { HealthModule } from './health/health.module';
 import { SuccessResponseInterceptor } from './interceptor/response.interceptor';
 import { AuthMiddleware } from './middlewares/auth.middleware';
 import { VehicleMiddleware } from './middlewares/vehicle.middleware';
+import { VersionControlModule } from './version-control/version-control.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { VehicleMiddleware } from './middlewares/vehicle.middleware';
     ServicingModule,
     PartsChangedModule,
     PartsReminderModule,
+    VersionControlModule,
   ],
   controllers: [],
   providers: [
