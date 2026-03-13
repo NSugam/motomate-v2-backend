@@ -15,7 +15,10 @@ export class Servicing extends CommonFields {
   odoReading: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
-  totalCost: number;
+  servicingCost: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  totalCostWithParts: number;
 
   @Column({ type: 'date' })
   englishDate: string;

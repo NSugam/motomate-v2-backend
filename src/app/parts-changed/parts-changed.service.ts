@@ -142,6 +142,64 @@ export class PartsChangedService {
     };
   }
 
+  async getLatestServicingParts(
+    userId: string,
+    vehicleId: string,
+    fromServicing?: boolean,
+  ) {
+    const data = await this.partsChangedRepo
+      .createQueryBuilder('pc')
+      .leftJoinAndSelect('pc.part', 'part')
+      .leftJoinAndSelect('part.partReminder', 'partReminder')
+      .leftJoinAndSelect('pc.servicing', 'servicing')
+      .where('pc.userId = :userId', { userId })
+      .andWhere('pc.vehicleId = :vehicleId', { vehicleId })
+      .andWhere('pc.fromServicing = :fromServicing', { fromServicing })
+      .andWhere((qb) => {
+        const subQuery = qb
+          .subQuery()
+          .select('MAX(pc2.id)')
+          .from('parts_changed', 'pc2')
+          .where('pc2.partId = pc.partId')
+          .andWhere('pc2.userId = :userId')
+          .andWhere('pc2.vehicleId = :vehicleId')
+          .andWhere('pc2.fromServicing = :fromServicing', {
+            fromServicing: fromServicing ?? true,
+          })
+          .getQuery();
+
+        return 'pc.id = ' + subQuery;
+      })
+      .select([
+        'pc.id',
+        'pc.createdAt',
+        'pc.odoReading',
+        'pc.englishDate',
+        'pc.nepaliDate',
+        'pc.cost',
+        'pc.fromServicing',
+
+        'part.id',
+        'part.name',
+        'part.description',
+
+        'partReminder.id',
+        'partReminder.type',
+        'partReminder.odoInterval',
+        'partReminder.dateInterval',
+
+        'servicing.id',
+        'servicing.counter',
+        'servicing.englishDate',
+        'servicing.nepaliDate',
+        'servicing.odoReading',
+      ])
+      .orderBy('pc.odoReading', 'DESC')
+      .getMany();
+
+    return [data, data.length];
+  }
+
   async update(id: string, payload: UpdatePartsChangedDTO, userId: string) {
     const data = await this.findOrFail({ id, userId });
 

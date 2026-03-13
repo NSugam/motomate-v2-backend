@@ -28,6 +28,7 @@ import { SuccessResponseInterceptor } from './interceptor/response.interceptor';
 import { AuthMiddleware } from './middlewares/auth.middleware';
 import { VehicleMiddleware } from './middlewares/vehicle.middleware';
 import { VersionControlModule } from './version-control/version-control.module';
+import { FillupsModule } from './app/fillups/fillups.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { VersionControlModule } from './version-control/version-control.module';
     PartsChangedModule,
     PartsReminderModule,
     VersionControlModule,
+    FillupsModule,
   ],
   controllers: [],
   providers: [

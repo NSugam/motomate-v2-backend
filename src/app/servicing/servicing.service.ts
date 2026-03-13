@@ -23,6 +23,7 @@ import { Servicing } from './entities/servicing.entity';
 
 type ServicingTotals = {
   totalServicingCost: number;
+  totalCostWithParts: number;
 };
 @Injectable()
 export class ServicingService {
@@ -36,10 +37,11 @@ export class ServicingService {
   ) {}
 
   async create(payload: CreateServicingDTO, user: LoggedInUser) {
+    // Create servicing entity
     const servicing = this.servicingRepo.create({
       location: payload.location,
       counter: payload.counter,
-      totalCost: payload.totalCost,
+      servicingCost: payload.servicingCost,
       englishDate: payload.englishDate,
       odoReading: payload.odoReading,
       remarks: payload.remarks,
@@ -47,8 +49,8 @@ export class ServicingService {
       vehicleId: user.defaultVehicleId,
     });
 
-    // attach parts changed
-    servicing.partsChanged = await Promise.all(
+    // Attach parts changed
+    const partsChangedEntities = await Promise.all(
       payload.partsChanged.map(async (p) => {
         const part = await this.partRepo.findOneOrFail({
           where: { id: p.partId, userId: user.id },
@@ -64,6 +66,17 @@ export class ServicingService {
       }),
     );
 
+    servicing.partsChanged = partsChangedEntities;
+
+    // Calculate totalCostWithParts
+    const partsTotal = partsChangedEntities.reduce(
+      (sum, pc) => sum + pc.cost,
+      0,
+    );
+    servicing['totalCostWithParts'] =
+      (servicing.servicingCost || 0) + partsTotal;
+
+    // Save servicing
     const saved = await this.servicingRepo.save(servicing);
 
     return {
@@ -85,8 +98,8 @@ export class ServicingService {
 
     if (payload.location !== undefined) servicing.location = payload.location;
     if (payload.counter !== undefined) servicing.counter = payload.counter;
-    if (payload.totalCost !== undefined)
-      servicing.totalCost = payload.totalCost;
+    if (payload.servicingCost !== undefined)
+      servicing.servicingCost = payload.servicingCost;
     if (payload.englishDate !== undefined)
       servicing.englishDate = payload.englishDate;
     if (payload.odoReading !== undefined)
@@ -96,7 +109,6 @@ export class ServicingService {
     // ===== PARTS SYNC LOGIC =====
     if (payload.partsChanged) {
       const existing = servicing.partsChanged;
-
       const updatedParts = [];
 
       for (const item of payload.partsChanged) {
@@ -138,14 +150,20 @@ export class ServicingService {
       // remove deleted parts
       const updatedIds = updatedParts.filter((p) => p.id).map((p) => p.id);
       const toDelete = existing.filter((p) => !updatedIds.includes(p.id));
-
-      if (toDelete.length) {
-        await this.partsChangedRepo.remove(toDelete);
-      }
+      if (toDelete.length) await this.partsChangedRepo.remove(toDelete);
 
       servicing.partsChanged = updatedParts;
     }
 
+    // ===== CALCULATE totalCostWithParts =====
+    const partsTotal = (servicing.partsChanged || []).reduce(
+      (sum, p) => sum + (p.cost || 0),
+      0,
+    );
+    servicing['totalCostWithParts'] =
+      (servicing.servicingCost || 0) + partsTotal;
+
+    // Save updated servicing
     await this.servicingRepo.save(servicing);
 
     return {
@@ -214,14 +232,17 @@ export class ServicingService {
 
     const totalsRaw = await this.servicingRepo
       .createQueryBuilder('s')
-      .select('COALESCE(SUM(s.totalCost), 0)', 'totalServicingCost')
+      .select('COALESCE(SUM(s.servicingCost), 0)', 'totalServicingCost')
+      .addSelect('COALESCE(SUM(s.totalCostWithParts), 0)', 'totalCostWithParts')
       .where(where)
       .getRawOne<{
         totalServicingCost: string;
+        totalCostWithParts: string;
       }>();
 
     const message: ServicingTotals = {
       totalServicingCost: Number(totalsRaw.totalServicingCost),
+      totalCostWithParts: Number(totalsRaw.totalCostWithParts),
     };
 
     return {

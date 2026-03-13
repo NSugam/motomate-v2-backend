@@ -52,6 +52,20 @@ export class PartsChangedController {
     );
   }
 
+  @Get('last-serviced')
+  @ApiOperation({ summary: 'Find Last Parts Changed from Servicing' })
+  getLatestPartsChanged(
+    @Query()
+    { fromServicing }: PartsChangedFilterDTO,
+    @UserFilter() { userId, vehicleId }: UserFilterType,
+  ) {
+    return this.partsChangedService.getLatestServicingParts(
+      userId,
+      vehicleId,
+      fromServicing,
+    );
+  }
+
   @Get('part/:id')
   @ApiOperation({ summary: 'Find parts changed by part id' })
   findByPartId(

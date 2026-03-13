@@ -33,7 +33,7 @@ export class CreateServicingDTO {
 
   @ApiProperty({ example: 1800 })
   @IsNumber()
-  totalCost: number;
+  servicingCost: number;
 
   @ApiProperty({ example: '2024-06-23' })
   @IsString()

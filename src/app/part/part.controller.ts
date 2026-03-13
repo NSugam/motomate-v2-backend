@@ -35,7 +35,7 @@ export class PartController {
       partsSelectWithRelation,
       pagination,
       {
-        createdAt: 'DESC',
+        name: 'ASC',
       },
       partsRelations,
     );
