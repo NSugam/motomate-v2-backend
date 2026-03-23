@@ -10,16 +10,16 @@ export class Fillups extends CommonFields {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   totalCost: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column({ type: 'int' })
   odoReading: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   fuelCost: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({ type: 'int', nullable: true })
   distance: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({ type: 'decimal', precision: 10, scale: 1, nullable: true })
   mileage: number;
 
   @Column({ type: 'date', nullable: true })

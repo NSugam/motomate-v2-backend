@@ -8,7 +8,6 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { ApiQuery } from '@nestjs/swagger';
 import { UserFilterType } from 'src/common/common.type';
 import { IdDTO, optionalPagiSearchTermDTO } from 'src/common/dto';
 import { OrmWhereType } from 'src/common/orm.type';
@@ -23,7 +22,6 @@ export class FillupsController {
   constructor(private readonly fillupsService: FillupsService) {}
 
   @Get()
-  @ApiQuery({ name: 'searchTerm', required: false })
   findAll(
     @Query() { searchTerm, ...pagination }: optionalPagiSearchTermDTO,
     @UserFilter() { userId, vehicleId }: UserFilterType,
@@ -32,9 +30,15 @@ export class FillupsController {
 
     if (searchTerm) filter.englishDate = ILike(`%${searchTerm}%`);
 
-    return this.fillupsService.findAndCount(filter, [], pagination, {
-      odoReading: 'DESC',
-    });
+    return this.fillupsService.findAndCountWithTotal(
+      filter,
+      {},
+      pagination,
+      {
+        odoReading: 'DESC',
+      },
+      {},
+    );
   }
 
   @Get(':id')

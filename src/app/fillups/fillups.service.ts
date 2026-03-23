@@ -7,11 +7,24 @@ import {
   FindManyFn,
   FindOneFn,
   FindOrFailFn,
+  OrmWhereType,
 } from 'src/common/orm.type';
 import { generateTakeSkip } from 'src/helper/utils';
-import { DataSource, Repository } from 'typeorm';
+import {
+  DataSource,
+  FindOptionsOrder,
+  FindOptionsRelations,
+  FindOptionsSelect,
+  Repository,
+} from 'typeorm';
 import { CreateFillupsDTO } from './dto/fillups.dto';
 import { Fillups } from './entities/fillup.entity';
+import { recalcDistanceAndMileage } from './fillups.helper';
+
+type FillupsTotals = {
+  afe: number;
+  totalSpent: number;
+};
 
 @Injectable()
 export class FillupsService {
@@ -100,13 +113,64 @@ export class FillupsService {
     });
   };
 
+  async findAndCountWithTotal(
+    where: OrmWhereType<Fillups>,
+    select: FindOptionsSelect<Fillups>,
+    pagination: { take?: number; skip?: number },
+    order: FindOptionsOrder<Fillups>,
+    relations: FindOptionsRelations<Fillups>,
+  ): Promise<{
+    data: Fillups[];
+    count: number;
+    message: FillupsTotals;
+  }> {
+    const [data, count] = await this.fillupsRepo.findAndCount({
+      where,
+      select,
+      relations,
+      order,
+      skip: pagination.skip,
+      take: pagination.take,
+    });
+
+    const totalSpentRaw = await this.fillupsRepo
+      .createQueryBuilder('f')
+      .select('COALESCE(SUM(f.totalCost), 0)', 'totalSpent')
+      .where(where)
+      .getRawOne<{ totalSpent: string }>();
+
+    const afeRaw = await this.fillupsRepo
+      .createQueryBuilder()
+      .select('COALESCE(AVG(sub.mileage), 0)', 'afe')
+      .from((subQuery) => {
+        return subQuery
+          .select('f.mileage', 'mileage')
+          .from('fillups', 'f')
+          .where(where)
+          .andWhere('f.isPartial = false')
+          .orderBy('f.created_at', 'DESC')
+          .limit(5);
+      }, 'sub')
+      .getRawOne<{ afe: string }>();
+
+    const message: FillupsTotals = {
+      totalSpent: Number(totalSpentRaw.totalSpent),
+      afe: Number(Number(afeRaw.afe).toFixed(2)),
+    };
+
+    return {
+      data,
+      count,
+      message,
+    };
+  }
+
   async update(
     id: string,
     { userId, vehicleId }: UserFilterType,
     payload: CreateFillupsDTO,
   ) {
     const queryRunner = this.dataSource.createQueryRunner();
-
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
@@ -117,14 +181,12 @@ export class FillupsService {
         where: { id, userId, vehicleId },
       });
 
-      // Get all records ordered by odo
       const all = await repository.find({
         where: { userId, vehicleId },
         order: { odoReading: 'ASC' },
       });
 
       const index = all.findIndex((f) => f.id === id);
-
       const previous = all[index - 1] || null;
       const next = all[index + 1] || null;
 
@@ -137,60 +199,20 @@ export class FillupsService {
           'Odometer must be greater than previous reading',
         ]);
       }
-
       if (next && Number(next.odoReading) <= Number(payload.odoReading)) {
         throw new BadRequestException([
           'Odometer must be less than next reading',
         ]);
       }
 
-      let distance = null;
-      let mileage = null;
+      const current = repository.merge(existing, payload);
+      await recalcDistanceAndMileage(repository, previous, current);
 
-      if (previous) {
-        distance = Number(payload.odoReading) - Number(previous.odoReading);
-
-        if (
-          distance > 0 &&
-          !payload.isPartial &&
-          !previous.isPartial &&
-          payload.quantity > 0
-        ) {
-          mileage = distance / payload.quantity;
-        }
-      }
-
-      const updated = repository.merge(existing, {
-        ...payload,
-        distance,
-        mileage,
-      });
-
-      await repository.save(updated);
-
-      // Recalculate next
       if (next) {
-        const newDistance =
-          Number(next.odoReading) - Number(payload.odoReading);
-
-        let newMileage = null;
-
-        if (!next.isPartial && newDistance > 0 && next.quantity > 0) {
-          newMileage = newDistance / next.quantity;
-        }
-
-        if (payload.isPartial) {
-          next.mileage = null;
-        } else {
-          next.distance = newDistance > 0 ? newDistance : null;
-          next.mileage = newMileage;
-        }
-
-        await repository.save(next);
+        await recalcDistanceAndMileage(repository, current, next);
       }
 
       await queryRunner.commitTransaction();
-
       return { message: 'Fillup Updated Successfully' };
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -199,9 +221,41 @@ export class FillupsService {
       await queryRunner.release();
     }
   }
+
   async delete(id: string, { userId, vehicleId }: UserFilterType) {
-    await this.findOrFail({ id, userId, vehicleId });
-    await this.fillupsRepo.delete(id);
-    return { message: 'Fillup Deleted Successfully' };
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const repository = queryRunner.manager.getRepository(Fillups);
+
+      await repository.findOneOrFail({
+        where: { id, userId, vehicleId },
+      });
+
+      const all = await repository.find({
+        where: { userId, vehicleId },
+        order: { odoReading: 'ASC' },
+      });
+
+      const index = all.findIndex((f) => f.id === id);
+      const previous = all[index - 1] || null;
+      const next = all[index + 1] || null;
+
+      await repository.delete(id);
+
+      if (next) {
+        await recalcDistanceAndMileage(repository, previous, next);
+      }
+
+      await queryRunner.commitTransaction();
+      return { message: 'Fillup Deleted Successfully' };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 }
