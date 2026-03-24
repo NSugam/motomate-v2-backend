@@ -56,13 +56,26 @@ export class PartsChangedController {
   @ApiOperation({ summary: 'Find Last Parts Changed from Servicing' })
   getLatestPartsChanged(
     @Query()
-    { fromServicing }: PartsChangedFilterDTO,
+    { fromServicing, checkReminder }: PartsChangedFilterDTO,
     @UserFilter() { userId, vehicleId }: UserFilterType,
   ) {
     return this.partsChangedService.getLatestServicingParts(
       userId,
       vehicleId,
       fromServicing,
+      checkReminder,
+    );
+  }
+
+  @Get('due-parts-reminders')
+  @ApiOperation({ summary: 'Find Due Parts Reminders' })
+  getDuePartsReminders(
+    @UserFilter() { userId, vehicleId, currentOdo }: UserFilterType,
+  ) {
+    return this.partsChangedService.getDuePartsReminders(
+      userId,
+      vehicleId,
+      currentOdo,
     );
   }
 

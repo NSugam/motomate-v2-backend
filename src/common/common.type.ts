@@ -7,4 +7,5 @@ export type ObjectErrMsgType = Record<'message', string | string[]>;
 export type UserFilterType = {
   userId: string;
   vehicleId: string;
+  currentOdo?: number;
 };

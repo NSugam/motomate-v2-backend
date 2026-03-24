@@ -14,21 +14,28 @@ export const UserFilter = createParamDecorator(
   (
     _data: unknown,
     ctx: ExecutionContext,
-  ): { userId: string | null; vehicleId: string | null } => {
+  ): {
+    userId: string | null;
+    vehicleId: string | null;
+    currentOdo: number | null;
+  } => {
     const request = ctx.switchToHttp().getRequest<RequestWithRequiredUser>();
 
     let userId: string | null = null;
     let vehicleId: string | null = null;
+    let currentOdo: number | null = null;
 
     if (request.user.role === UserRoleENUM.SUPER_ADMIN) {
       userId = null;
       vehicleId = null;
+      currentOdo = null;
     } else {
       userId = request.user.id;
       vehicleId = request.user.defaultVehicleId;
+      currentOdo = request.user.defaultVehicle.odoReading;
     }
 
     // return ids if not super admin
-    return { userId, vehicleId };
+    return { userId, vehicleId, currentOdo };
   },
 );

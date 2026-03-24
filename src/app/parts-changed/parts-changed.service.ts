@@ -16,6 +16,7 @@ import {
   Repository,
 } from 'typeorm';
 
+import NepaliDate from 'nepali-date-converter';
 import { Part } from '../part/entities/part.entity';
 import { Servicing } from '../servicing/entities/servicing.entity';
 import { LoggedInUser } from '../user/user.type';
@@ -146,30 +147,40 @@ export class PartsChangedService {
     userId: string,
     vehicleId: string,
     fromServicing?: boolean,
-  ) {
-    const data = await this.partsChangedRepo
+    checkReminder?: boolean,
+  ): Promise<[PartsChanged[], number]> {
+    const qb = this.partsChangedRepo
       .createQueryBuilder('pc')
       .leftJoinAndSelect('pc.part', 'part')
       .leftJoinAndSelect('part.partReminder', 'partReminder')
       .leftJoinAndSelect('pc.servicing', 'servicing')
       .where('pc.userId = :userId', { userId })
       .andWhere('pc.vehicleId = :vehicleId', { vehicleId })
-      .andWhere('pc.fromServicing = :fromServicing', { fromServicing })
-      .andWhere((qb) => {
-        const subQuery = qb
-          .subQuery()
-          .select('MAX(pc2.id)')
-          .from('parts_changed', 'pc2')
-          .where('pc2.partId = pc.partId')
-          .andWhere('pc2.userId = :userId')
-          .andWhere('pc2.vehicleId = :vehicleId')
-          .andWhere('pc2.fromServicing = :fromServicing', {
-            fromServicing: fromServicing ?? true,
-          })
-          .getQuery();
+      .andWhere('pc.fromServicing = :fromServicing', {
+        fromServicing: fromServicing ?? true,
+      });
 
-        return 'pc.id = ' + subQuery;
-      })
+    if (checkReminder) {
+      qb.andWhere('partReminder.id IS NOT NULL');
+    }
+
+    qb.andWhere((qb) => {
+      const subQuery = qb
+        .subQuery()
+        .select('pc2.id')
+        .from('parts_changed', 'pc2')
+        .where('pc2.partId = pc.partId')
+        .andWhere('pc2.userId = :userId')
+        .andWhere('pc2.vehicleId = :vehicleId')
+        .andWhere('pc2.fromServicing = :fromServicing', {
+          fromServicing: fromServicing ?? true,
+        })
+        .orderBy('pc2.odoReading', 'DESC')
+        .limit(1)
+        .getQuery();
+
+      return 'pc.id = ' + subQuery;
+    })
       .select([
         'pc.id',
         'pc.createdAt',
@@ -194,10 +205,102 @@ export class PartsChangedService {
         'servicing.nepaliDate',
         'servicing.odoReading',
       ])
-      .orderBy('pc.odoReading', 'DESC')
-      .getMany();
+      .orderBy('pc.odoReading', 'DESC');
 
+    const data = await qb.getMany();
     return [data, data.length];
+  }
+
+  async getDuePartsReminders(
+    userId: string,
+    vehicleId: string,
+    currentOdo: number,
+  ) {
+    const [data] = await this.getLatestServicingParts(
+      userId,
+      vehicleId,
+      false,
+      true,
+    );
+
+    const today = new Date();
+    const ODO_BUFFER = 500;
+    const DATE_BUFFER = 30; // days
+
+    const result = data
+      .map((item) => {
+        const reminder = item.part?.partReminder;
+        if (!reminder) return null;
+
+        let nextOdo: number | null = null;
+        let nextDate: { englishDate: string; nepaliDate: string } | null = null;
+        let isDue = false;
+        let isUpcoming = false;
+
+        // ODO logic
+        if (reminder.odoInterval) {
+          nextOdo = Number(item.odoReading) + Number(reminder.odoInterval);
+
+          if (currentOdo >= nextOdo) {
+            isDue = true;
+          } else if (currentOdo >= nextOdo - ODO_BUFFER) {
+            isUpcoming = true;
+          }
+        }
+
+        // DATE logic
+        if (reminder.dateInterval) {
+          const baseDate = new Date(item.englishDate);
+          const dueDateObj = new Date(baseDate);
+          dueDateObj.setDate(baseDate.getDate() + reminder.dateInterval);
+
+          const nepaliDueDate = new NepaliDate(dueDateObj);
+          const nepaliDate = nepaliDueDate.format('YYYY MMMM DD', 'np');
+
+          nextDate = {
+            englishDate: dueDateObj.toISOString().split('T')[0],
+            nepaliDate: nepaliDate,
+          };
+
+          if (today >= dueDateObj) {
+            isDue = true;
+          } else {
+            const diffDays =
+              (dueDateObj.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
+            if (diffDays <= DATE_BUFFER) {
+              isUpcoming = true;
+            }
+          }
+        }
+
+        const type =
+          reminder.odoInterval && reminder.dateInterval
+            ? 'any'
+            : reminder.odoInterval
+              ? 'odo'
+              : 'englishDate';
+
+        if (!isDue && !isUpcoming) return null;
+
+        return {
+          type,
+          partName: item.part?.name,
+          lastReplaced: {
+            odoReading: item.odoReading,
+            englishDate: item.englishDate,
+            nepaliDate: item.nepaliDate,
+          },
+          currentOdo: Number(currentOdo),
+          nextOdo,
+          nextDate,
+          dueOdo: isDue ? currentOdo - nextOdo : null,
+          isDue,
+          isUpcoming,
+        };
+      })
+      .filter(Boolean);
+
+    return [result, result.length];
   }
 
   async update(id: string, payload: UpdatePartsChangedDTO, userId: string) {

@@ -13,4 +13,14 @@ export class PartsChangedFilterDTO extends optionalPagiSearchTermDTO {
   @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
   fromServicing?: boolean;
+
+  @ApiPropertyOptional({
+    default: false,
+    description: 'Check if the part has a reminder or not',
+    type: Boolean,
+  })
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  checkReminder?: boolean;
 }
