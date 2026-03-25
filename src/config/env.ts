@@ -19,4 +19,6 @@ export const env = {
 
   MAIL_USERNAME: process.env.MAIL_USERNAME,
   MAIL_PASSWORD: process.env.MAIL_PASSWORD,
+
+  API_NINJAS_KEY: process.env.API_NINJAS_KEY,
 };

@@ -1,5 +1,6 @@
 import NepaliDate from 'nepali-date-converter';
 import { User } from 'src/app/user/entities/user.entity';
+import { MasterData } from 'src/master-data/entities/md_bikes.entity';
 import {
   BeforeInsert,
   BeforeUpdate,
@@ -24,13 +25,18 @@ export class Vehicle {
   @ManyToOne(() => User, (user) => user.vehicles)
   user: User;
 
+  @ManyToOne(() => MasterData, (data) => data.userVehicle, {
+    nullable: true,
+  })
+  masterData: MasterData;
+
   @Column({ type: 'text' })
   brand: string;
 
   @Column({ type: 'text' })
   model: string;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'float' })
   cc: number;
 
   @Column({ type: 'bigint' })

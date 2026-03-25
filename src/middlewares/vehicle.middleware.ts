@@ -34,8 +34,8 @@ export class VehicleMiddleware implements NestMiddleware {
         'BadRequest: Please select a default vehicle',
       );
 
-    if (user.vehicles.length >= 3) {
-      throw new UnauthorizedException('Trial: You can only have 3 vehicles');
+    if (user.vehicles.length > 2) {
+      throw new UnauthorizedException('Trial: You can only have 2 vehicles');
     }
 
     next();

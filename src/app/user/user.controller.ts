@@ -7,6 +7,7 @@ import {
   Patch,
   Query,
 } from '@nestjs/common';
+import { UserFilterType } from 'src/common/common.type';
 import { OrmWhereType } from 'src/common/orm.type';
 import { GetUser, UserFilter } from 'src/decorators/get-user.decorator';
 import { ILike } from 'typeorm';
@@ -16,7 +17,6 @@ import { userRelations, userSelectWithRelation } from './dto/user.select.dto';
 import { User } from './entities/user.entity';
 import { UserService } from './user.service';
 import { LoggedInUser } from './user.type';
-import { UserFilterType } from 'src/common/common.type';
 
 @Controller('user')
 export class UserController {
@@ -25,6 +25,14 @@ export class UserController {
   @Get('me')
   getProfile(@GetUser() user: LoggedInUser) {
     return this.usersService.getProfile(user);
+  }
+
+  @Patch('me')
+  updateUser(
+    @Body() updateDetails: UpdateUserDto,
+    @UserFilter() { userId }: UserFilterType,
+  ) {
+    return this.usersService.update(userId, updateDetails);
   }
 
   @Get()

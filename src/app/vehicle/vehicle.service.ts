@@ -26,13 +26,18 @@ export class VehicleService {
   ) {}
 
   async create(payload: CreateVehicleDTO, user: LoggedInUser) {
+    if (user.vehicles.length >= 2)
+      throw new BadRequestException('You can only add up to 2 vehicles');
+
     const data = this.vehicleRepo.create({
       ...payload,
       user: { id: user.id },
+      masterData: { id: payload.masterDataId },
     });
 
     const vehicle = await this.vehicleRepo.save(data);
-    await this.userRepo.update(user.id, { defaultVehicleId: vehicle.id });
+    if (user.defaultVehicleId === null)
+      await this.userRepo.update(user.id, { defaultVehicleId: vehicle.id });
 
     return { message: 'Vehicle Created Successfully', id: vehicle.id };
   }
@@ -70,10 +75,17 @@ export class VehicleService {
     });
   };
 
-  async update(id: string, userId: string | null, payload: UpdateVehicleDTO) {
-    const data = await this.findOrFail({ id, user: { id: userId } }, []);
+  async update(
+    vehicleId: string,
+    userId: string | null,
+    payload: UpdateVehicleDTO,
+  ) {
+    const data = await this.findOrFail(
+      { id: vehicleId, user: { id: userId } },
+      [],
+    );
     const updatePayload = this.vehicleRepo.merge(data, payload);
-    await this.vehicleRepo.update(id, updatePayload);
+    await this.vehicleRepo.update(vehicleId, updatePayload);
     return { message: 'Vehicle Updated Successfully' };
   }
 

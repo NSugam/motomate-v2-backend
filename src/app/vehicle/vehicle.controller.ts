@@ -35,6 +35,14 @@ export class VehicleController {
     );
   }
 
+  @Patch('my-default')
+  updateDefault(
+    @Body() body: UpdateVehicleDTO,
+    @UserFilter() { userId, vehicleId }: UserFilterType,
+  ) {
+    return this.vehicleService.update(vehicleId, userId, body);
+  }
+
   @Get()
   findAll(
     @Query() { searchTerm, ...pagination }: optionalPagiSearchTermDTO,

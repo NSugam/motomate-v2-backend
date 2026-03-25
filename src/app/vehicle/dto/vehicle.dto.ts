@@ -10,6 +10,10 @@ export class CreateVehicleDTO {
   @IsString()
   model: string;
 
+  @ApiProperty({ example: '1' })
+  @IsString()
+  masterDataId: string;
+
   @ApiProperty({ example: 160 })
   @IsNumber()
   cc: number;

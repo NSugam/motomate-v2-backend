@@ -12,7 +12,7 @@ import { env } from 'src/config/env';
 import { Repository } from 'typeorm';
 import {
   userRelations,
-  userSelectFields,
+  userSelectWithRelation,
 } from '../app/user/dto/user.select.dto';
 
 @Injectable()
@@ -31,7 +31,7 @@ export class AuthMiddleware implements NestMiddleware {
 
     const user = await this.userEntity.findOne({
       where: { id: decoded.userId },
-      select: userSelectFields,
+      select: userSelectWithRelation,
       relations: userRelations,
     });
 

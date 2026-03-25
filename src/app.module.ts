@@ -29,6 +29,7 @@ import { AuthMiddleware } from './middlewares/auth.middleware';
 import { VehicleMiddleware } from './middlewares/vehicle.middleware';
 import { VersionControlModule } from './version-control/version-control.module';
 import { FillupsModule } from './app/fillups/fillups.module';
+import { MasterDataModule } from './master-data/master-data.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { FillupsModule } from './app/fillups/fillups.module';
     PartsReminderModule,
     VersionControlModule,
     FillupsModule,
+    MasterDataModule,
   ],
   controllers: [],
   providers: [

@@ -1,7 +1,11 @@
 import { vehicleSelectFields } from 'src/app/vehicle/dto/vehicle.select.dto';
-import { User } from '../entities/user.entity';
 
-export const userRelations: (keyof User)[] = ['vehicles', 'defaultVehicle'];
+export const userRelations = {
+  vehicles: true,
+  defaultVehicle: {
+    masterData: true,
+  },
+};
 
 export const userSelectFields = {
   id: true,
@@ -19,5 +23,15 @@ export const userSelectFields = {
 export const userSelectWithRelation = {
   ...userSelectFields,
   vehicles: vehicleSelectFields,
-  defaultVehicle: vehicleSelectFields,
+  defaultVehicle: {
+    ...vehicleSelectFields,
+    masterData: {
+      engine: true,
+      displacement: true,
+      power: true,
+      torque: true,
+      cooling: true,
+      total_weight: true,
+    },
+  },
 };
