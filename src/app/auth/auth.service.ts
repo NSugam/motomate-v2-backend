@@ -62,7 +62,7 @@ export class AuthService {
 
     res.cookie('_xf_', token, {
       httpOnly: true,
-      secure: false, // true for swagger and production, false for react-native
+      secure: true, // true for swagger and production, false for react-native
       sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
       // maxAge: 60 * 60 * 1000, // 1 hr
