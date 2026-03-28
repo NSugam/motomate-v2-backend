@@ -20,6 +20,7 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userEntity: Repository<User>,
+
     private readonly entityManager: EntityManager,
   ) {}
 

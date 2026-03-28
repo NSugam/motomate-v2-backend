@@ -12,6 +12,7 @@ import {
 } from 'src/common/orm.type';
 import { generateTakeSkip } from 'src/helper/utils';
 import { Repository } from 'typeorm';
+import { ServiceReminder } from '../service-reminder/entities/service-reminder.entity';
 import { User } from '../user/entities/user.entity';
 import { LoggedInUser } from '../user/user.type';
 import { CreateVehicleDTO, UpdateVehicleDTO } from './dto/vehicle.dto';
@@ -23,6 +24,8 @@ export class VehicleService {
     private readonly vehicleRepo: Repository<Vehicle>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(ServiceReminder)
+    private readonly serviceReminderEntity: Repository<ServiceReminder>,
   ) {}
 
   async create(payload: CreateVehicleDTO, user: LoggedInUser) {
@@ -39,6 +42,10 @@ export class VehicleService {
     if (user.defaultVehicleId === null)
       await this.userRepo.update(user.id, { defaultVehicleId: vehicle.id });
 
+    await this.serviceReminderEntity.save({
+      userId: user.id,
+      vehicleId: vehicle.id,
+    });
     return { message: 'Vehicle Created Successfully', id: vehicle.id };
   }
 

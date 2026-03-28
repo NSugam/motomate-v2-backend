@@ -10,6 +10,7 @@ export enum UserRoleENUM {
 export interface LoggedInUser {
   id: string;
   defaultVehicleId: string;
+  defaultVehicle?: Vehicle;
   fullname: string;
   username: string;
   email: string;

@@ -10,7 +10,13 @@ import { UserRoleENUM } from '../app/user/user.type';
 
 @Injectable()
 export class VehicleMiddleware implements NestMiddleware {
-  private publicPaths: string[] = ['user/me:get', 'vehicle:post'];
+  private publicPaths: string[] = [
+    'user/me:get',
+    'vehicle:post',
+    'master-data/makes:get',
+    'master-data/models:get',
+    'master-data/model/:id:get',
+  ];
 
   use(req: RequestWithUser, _res: Response, next: NextFunction) {
     const user = req?.user;

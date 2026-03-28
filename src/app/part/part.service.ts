@@ -106,4 +106,11 @@ export class PartService {
     await this.partRepo.remove(part);
     return { message: 'Part deleted successfully' };
   }
+
+  async forceDelete(id: string, userId: string) {
+    const part = await this.partRepo.findOne({ where: { id, userId } });
+    if (!part) throw new BadRequestException('Part not found');
+    await this.partRepo.remove(part);
+    return { message: `Part: ${part.name} force deleted!` };
+  }
 }

@@ -68,4 +68,12 @@ export class PartController {
   delete(@Param() { id }: IdDTO, @UserFilter() { userId }: UserFilterType) {
     return this.partService.delete(id, userId);
   }
+
+  @Delete('force/:id')
+  forceDelete(
+    @Param() { id }: IdDTO,
+    @UserFilter() { userId }: UserFilterType,
+  ) {
+    return this.partService.forceDelete(id, userId);
+  }
 }
