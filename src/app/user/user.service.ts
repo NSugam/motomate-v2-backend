@@ -51,6 +51,12 @@ export class UserService {
   async update(id: string, updateDetails: UpdateUserDto) {
     const userData = await this.userRepo.findOne({ where: { id } });
 
+    if (userData.email === 'test@gmail.com') {
+      throw new UnauthorizedException(
+        'Unauthorised: Test account cannot be modified.',
+      );
+    }
+
     if (!userData) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
