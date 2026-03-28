@@ -26,9 +26,9 @@ export class PartController {
   @Get()
   findAll(
     @Query() { searchTerm, ...pagination }: optionalPagiSearchTermDTO,
-    @UserFilter() { userId }: UserFilterType,
+    @UserFilter() { userId, vehicleId }: UserFilterType,
   ) {
-    const filter: OrmWhereType<Part> = { userId };
+    const filter: OrmWhereType<Part> = { userId, vehicleId };
     if (searchTerm) filter.name = ILike(`%${searchTerm}%`);
     return this.partService.findAndCount(
       filter,
