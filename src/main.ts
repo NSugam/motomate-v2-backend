@@ -4,7 +4,6 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import { config } from 'dotenv';
 import { AppModule } from './app.module';
-import { GlobalExceptionFilter } from './common/global-exception.filter';
 import { env } from './config/env';
 import { SuccessResponseInterceptor } from './interceptor/response.interceptor';
 
@@ -33,7 +32,7 @@ async function bootstrap() {
     }),
   );
 
-  app.useGlobalFilters(new GlobalExceptionFilter());
+  // app.useGlobalFilters(new GlobalExceptionFilter());
   app.useGlobalInterceptors(new SuccessResponseInterceptor());
 
   const config = new DocumentBuilder()
@@ -55,5 +54,7 @@ async function bootstrap() {
 }
 
 void bootstrap().then((): void => {
-  console.log(`|--------Server is running on port ${PORT}--------|`);
+  console.log(
+    `|--------${env.NODE_ENV} Server is running on port ${PORT}--------|`,
+  );
 });
