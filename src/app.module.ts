@@ -11,6 +11,7 @@ import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { join } from 'path';
 import { AuthModule } from './app/auth/auth.module';
 import { FillupsModule } from './app/fillups/fillups.module';
+import { NotificationModule } from './app/notification/notification.module';
 import { PartModule } from './app/part/part.module';
 import { PartsChangedModule } from './app/parts-changed/parts-changed.module';
 import { PartsReminderModule } from './app/parts-reminder/parts-reminder.module';
@@ -58,6 +59,7 @@ import { VersionControlModule } from './version-control/version-control.module';
     VersionControlModule,
     FillupsModule,
     MasterDataModule,
+    NotificationModule,
   ],
   controllers: [],
   providers: [
