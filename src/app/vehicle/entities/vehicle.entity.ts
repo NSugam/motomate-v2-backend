@@ -45,7 +45,7 @@ export class Vehicle {
   @Column({ type: 'text' })
   year: string;
 
-  @Column({ type: 'float', default: 0 })
+  @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
   afe: number;
 
   @Column({ type: 'date', nullable: true })

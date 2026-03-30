@@ -35,6 +35,11 @@ export class VehicleController {
     );
   }
 
+  @Get('my-afe')
+  getAFE(@UserFilter() { userId, vehicleId }: UserFilterType) {
+    return this.vehicleService.getAFE({ userId, vehicleId });
+  }
+
   @Patch('my-default')
   updateDefault(
     @Body() body: UpdateVehicleDTO,

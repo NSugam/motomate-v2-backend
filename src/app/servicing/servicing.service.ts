@@ -18,6 +18,7 @@ import {
 import { Part } from '../part/entities/part.entity';
 import { PartsChanged } from '../parts-changed/entities/parts-changed.entity';
 import { LoggedInUser } from '../user/user.type';
+import { VehicleService } from '../vehicle/vehicle.service';
 import { CreateServicingDTO, UpdateServicingDTO } from './dto/servicing.dto';
 import { Servicing } from './entities/servicing.entity';
 
@@ -34,6 +35,7 @@ export class ServicingService {
     private readonly partsChangedRepo: Repository<PartsChanged>,
     @InjectRepository(Part)
     private readonly partRepo: Repository<Part>,
+    private readonly vehicleService: VehicleService,
   ) {}
 
   async create(payload: CreateServicingDTO, user: LoggedInUser) {
@@ -78,6 +80,11 @@ export class ServicingService {
 
     // Save servicing
     const saved = await this.servicingRepo.save(servicing);
+
+    await this.vehicleService.verifyAndUpdate(user.defaultVehicleId, user.id, {
+      odoReading: payload.odoReading,
+      afe: undefined,
+    });
 
     return {
       message: 'Servicing Created Successfully',
@@ -165,6 +172,12 @@ export class ServicingService {
 
     // Save updated servicing
     await this.servicingRepo.save(servicing);
+
+    const { afe } = await this.vehicleService.getAFE({ userId, vehicleId });
+    await this.vehicleService.verifyAndUpdate(vehicleId, userId, {
+      odoReading: payload.odoReading,
+      afe: afe || undefined,
+    });
 
     return {
       message: 'Servicing Updated Successfully',

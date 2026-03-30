@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { UserFilterType } from 'src/common/common.type';
 import {
   FailOnFoundFn,
   FindAndCountFn,
@@ -12,6 +13,7 @@ import {
 } from 'src/common/orm.type';
 import { generateTakeSkip } from 'src/helper/utils';
 import { Repository } from 'typeorm';
+import { Fillups } from '../fillups/entities/fillup.entity';
 import { ServiceReminder } from '../service-reminder/entities/service-reminder.entity';
 import { User } from '../user/entities/user.entity';
 import { LoggedInUser } from '../user/user.type';
@@ -24,6 +26,8 @@ export class VehicleService {
     private readonly vehicleRepo: Repository<Vehicle>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(Fillups)
+    private readonly fillupsRepo: Repository<Fillups>,
     @InjectRepository(ServiceReminder)
     private readonly serviceReminderEntity: Repository<ServiceReminder>,
   ) {}
@@ -94,6 +98,61 @@ export class VehicleService {
     const updatePayload = this.vehicleRepo.merge(data, payload);
     await this.vehicleRepo.update(vehicleId, updatePayload);
     return { message: 'Vehicle Updated Successfully' };
+  }
+
+  async getAFE({
+    userId,
+    vehicleId,
+  }: UserFilterType): Promise<{ afe: number }> {
+    const afeRaw = await this.fillupsRepo
+      .createQueryBuilder()
+      .select('COALESCE(AVG(sub.mileage), 0)', 'afe')
+      .from((subQuery) => {
+        return subQuery
+          .select('f.mileage', 'mileage')
+          .from('fillups', 'f')
+          .where('f.userId = :userId', { userId })
+          .andWhere('f.vehicleId = :vehicleId', { vehicleId })
+          .andWhere('f.isPartial = false')
+          .orderBy('f.created_at', 'DESC')
+          .limit(5);
+      }, 'sub')
+      .getRawOne<{ afe: string }>();
+
+    return {
+      afe: Number(Number(afeRaw.afe).toFixed(2)),
+    };
+  }
+
+  async verifyAndUpdate(
+    vehicleId: string,
+    userId: string | null,
+    payload: UpdateVehicleDTO,
+  ) {
+    const existing = await this.findOrFail(
+      { id: vehicleId, user: { id: userId } },
+      [],
+    );
+
+    const updateData: Partial<UpdateVehicleDTO> = {};
+
+    if (
+      payload.odoReading !== undefined &&
+      payload.odoReading > existing.odoReading
+    ) {
+      updateData.odoReading = payload.odoReading;
+    }
+
+    if (payload.afe !== undefined && payload.afe !== existing.afe) {
+      updateData.afe = payload.afe;
+    }
+
+    if (Object.keys(updateData).length > 0) {
+      await this.vehicleRepo.update(vehicleId, updateData);
+      return { message: 'Vehicle Updated Successfully' };
+    }
+
+    return { message: 'Nothing to update' };
   }
 
   async delete(id: string, userId: string | null) {

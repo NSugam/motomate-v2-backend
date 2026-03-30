@@ -3,7 +3,7 @@ import { PartsReminder } from 'src/app/parts-reminder/entities/parts-reminder.en
 import { CommonFields } from 'src/common/base.entity';
 import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
 
-@Entity('part')
+@Entity('md_part')
 export class Part extends CommonFields {
   @Column()
   name: string;

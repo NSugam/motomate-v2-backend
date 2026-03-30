@@ -17,6 +17,7 @@ import {
   FindOptionsSelect,
   Repository,
 } from 'typeorm';
+import { VehicleService } from '../vehicle/vehicle.service';
 import { CreateFillupsDTO } from './dto/fillups.dto';
 import { Fillups } from './entities/fillup.entity';
 import { recalcDistanceAndMileage } from './fillups.helper';
@@ -31,6 +32,7 @@ export class FillupsService {
   constructor(
     @InjectRepository(Fillups)
     private readonly fillupsRepo: Repository<Fillups>,
+    private readonly vehicleService: VehicleService,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -61,6 +63,12 @@ export class FillupsService {
         mileage = distance / payload.quantity;
       }
     }
+
+    const { afe } = await this.vehicleService.getAFE({ userId, vehicleId });
+    await this.vehicleService.verifyAndUpdate(vehicleId, userId, {
+      odoReading: payload.odoReading,
+      afe: afe || undefined,
+    });
 
     const data = this.fillupsRepo.create({
       ...payload,
@@ -211,8 +219,14 @@ export class FillupsService {
       if (next) {
         await recalcDistanceAndMileage(repository, current, next);
       }
-
       await queryRunner.commitTransaction();
+
+      const { afe } = await this.vehicleService.getAFE({ userId, vehicleId });
+      await this.vehicleService.verifyAndUpdate(vehicleId, userId, {
+        odoReading: payload.odoReading,
+        afe: afe || undefined,
+      });
+
       return { message: 'Fillup Updated Successfully' };
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -250,6 +264,12 @@ export class FillupsService {
       }
 
       await queryRunner.commitTransaction();
+
+      const { afe } = await this.vehicleService.getAFE({ userId, vehicleId });
+      await this.vehicleService.verifyAndUpdate(vehicleId, userId, {
+        odoReading: undefined,
+        afe: afe || undefined,
+      });
       return { message: 'Fillup Deleted Successfully' };
     } catch (error) {
       await queryRunner.rollbackTransaction();

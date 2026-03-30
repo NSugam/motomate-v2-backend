@@ -14,7 +14,8 @@ export const env = {
   DB_USERNAME: process.env.DB_USERNAME || 'postgres',
   DB_PASSWORD: process.env.DB_PASSWORD || '123',
   DB_DATABASE: process.env.DB_DATABASE || 'your_db_name',
-  DB_SCHEMA: process.env.DB_SCHEMA || 'public',
+  DB_SCHEMA_TEST: process.env.DB_SCHEMA_TEST || 'public',
+  DB_SCHEMA_PROD: process.env.DB_SCHEMA_PROD || 'production_schema',
   DB_SYNCHRONIZE: Boolean(process.env.DB_SYNCHRONIZE) || false,
 
   MAIL_USERNAME: process.env.MAIL_USERNAME,
