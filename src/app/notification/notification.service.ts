@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
-import { LoggedInUser } from '../user/user.type';
+import { LoggedInUser, UserRoleENUM } from '../user/user.type';
 import { CreateNotificationDTO } from './dto/create-notification.dto';
 
 @Injectable()
@@ -11,7 +11,10 @@ export class NotificationService {
 
   async sendExpoNotification(data: CreateNotificationDTO, user: LoggedInUser) {
     const message = {
-      to: data.expoToken ? data.expoToken : user.ExpoToken,
+      to:
+        data.expoToken && user.role === UserRoleENUM.ADMIN
+          ? data.expoToken
+          : user.ExpoToken,
       sound: 'default',
       title: data.title,
       body: data.body,
