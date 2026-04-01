@@ -12,8 +12,8 @@ export class ServiceReminderController {
   constructor(private readonly reminderService: ServiceReminderService) {}
 
   @Get('my-reminder-settings')
-  findOne(@UserFilter() { userId }: UserFilterType) {
-    return this.reminderService.findOrFail({ userId }, [], []);
+  findOne(@UserFilter() { userId, vehicleId }: UserFilterType) {
+    return this.reminderService.findOrFail({ userId, vehicleId }, [], []);
   }
 
   @Get('due-reminders')

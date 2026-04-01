@@ -1,9 +1,17 @@
-import { CommonFields } from 'src/common/base.entity';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { ReminderTypeENUM } from '../dto/reminder.types';
 
 @Entity('service_reminder')
-export class ServiceReminder extends CommonFields {
+export class ServiceReminder {
+  @PrimaryGeneratedColumn({ type: 'bigint' })
+  id: string;
+
+  @Column({ type: 'bigint' })
+  userId: string;
+
+  @Column({ type: 'bigint', unique: true })
+  vehicleId: string;
+
   @Column({
     type: 'enum',
     enum: ReminderTypeENUM,
@@ -11,9 +19,9 @@ export class ServiceReminder extends CommonFields {
   })
   type: ReminderTypeENUM;
 
-  @Column({ type: 'int', default: 2000 })
+  @Column({ type: 'int', default: 10000, nullable: true })
   odoInterval?: number;
 
-  @Column({ type: 'int', default: 30 })
+  @Column({ type: 'int', default: 30, nullable: true })
   dateInterval?: number;
 }
