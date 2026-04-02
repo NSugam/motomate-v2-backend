@@ -25,7 +25,11 @@ export class PartService {
 
   async create(payload: CreatePartDTO, user: LoggedInUser) {
     const existing = await this.partRepo.findOne({
-      where: { name: ILike(payload.name) },
+      where: {
+        name: ILike(payload.name),
+        userId: user.id,
+        vehicleId: user.defaultVehicleId,
+      },
     });
     if (existing)
       throw new BadRequestException(
