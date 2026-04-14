@@ -32,9 +32,7 @@ export class PartService {
       },
     });
     if (existing)
-      throw new BadRequestException(
-        `Part Already Exists With Id ${existing.id}`,
-      );
+      throw new BadRequestException(`${existing.name} Already Exists. `);
 
     const part = this.partRepo.create({
       ...payload,

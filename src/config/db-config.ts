@@ -12,7 +12,7 @@ export const typeOrmConfigs = () => {
     password: env.DB_PASSWORD,
     database: env.DB_DATABASE,
     schema: env.isProd ? env.DB_SCHEMA_PROD : env.DB_SCHEMA_TEST,
-    // logging: env.NODE_ENV === 'development',
+    logging: !env.isProd,
     entities: [join(__dirname, '/../**/**.entity{.ts,.js}')],
     migrations: [join(__dirname, '/../database/migrations/*.{ts,js}')],
     subscribers: [
