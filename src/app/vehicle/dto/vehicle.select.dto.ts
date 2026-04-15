@@ -1,6 +1,9 @@
 import { Vehicle } from '../entities/vehicle.entity';
 
-export const vehicleRelations: (keyof Vehicle)[] = ['masterData'];
+export const vehicleRelations: (keyof Vehicle)[] = [
+  'masterData',
+  'vehicleImage',
+];
 
 export const vehicleSelectFields = {
   id: true,
@@ -13,6 +16,11 @@ export const vehicleSelectFields = {
   afe: true,
   nepaliDate: true,
   englishDate: true,
+  vehicleImage: {
+    id: true,
+    url: true,
+    type: true,
+  },
 };
 
 export const vehicleSelectWithRelation = {
@@ -33,5 +41,10 @@ export const vehicleSelectWithRelation = {
     torque: true,
     cooling: true,
     total_weight: true,
+  },
+  vehicleImage: {
+    id: true,
+    url: true,
+    type: true,
   },
 };

@@ -22,6 +22,7 @@ import { RoleModule } from './app/rbac/role/role.module';
 import { RouteModule } from './app/rbac/route/route.module';
 import { ServiceReminderModule } from './app/service-reminder/service-reminder.module';
 import { ServicingModule } from './app/servicing/servicing.module';
+import { UploadModule } from './app/upload/upload.module';
 import { User } from './app/user/entities/user.entity';
 import { UserModule } from './app/user/user.module';
 import { VehicleModule } from './app/vehicle/vehicle.module';
@@ -60,6 +61,7 @@ import { VersionControlModule } from './version-control/version-control.module';
     FillupsModule,
     MasterDataModule,
     NotificationModule,
+    UploadModule,
   ],
   controllers: [],
   providers: [

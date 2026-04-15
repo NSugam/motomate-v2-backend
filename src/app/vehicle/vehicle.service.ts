@@ -15,6 +15,7 @@ import { generateTakeSkip } from 'src/helper/utils';
 import { Repository } from 'typeorm';
 import { Fillups } from '../fillups/entities/fillup.entity';
 import { ServiceReminder } from '../service-reminder/entities/service-reminder.entity';
+import { UploadService } from '../upload/upload.service';
 import { User } from '../user/entities/user.entity';
 import { LoggedInUser } from '../user/user.type';
 import { CreateVehicleDTO, UpdateVehicleDTO } from './dto/vehicle.dto';
@@ -30,6 +31,7 @@ export class VehicleService {
     private readonly fillupsRepo: Repository<Fillups>,
     @InjectRepository(ServiceReminder)
     private readonly serviceReminderEntity: Repository<ServiceReminder>,
+    private readonly uploadService: UploadService,
   ) {}
 
   async create(payload: CreateVehicleDTO, user: LoggedInUser) {
@@ -51,6 +53,28 @@ export class VehicleService {
       vehicleId: vehicle.id,
     });
     return { message: 'Vehicle Created Successfully', id: vehicle.id };
+  }
+
+  async updateVehicleImage(file: Express.Multer.File, user: LoggedInUser) {
+    const uploaded = await this.uploadService.uploadAndSave(file, user);
+
+    const vehicle = await this.vehicleRepo.findOne({
+      where: { id: user.defaultVehicleId },
+      relations: ['vehicleImage'],
+    });
+    if (!vehicle) throw new BadRequestException('Vehicle not found');
+
+    const oldImage = vehicle.vehicleImage;
+    vehicle.vehicleImage = uploaded;
+    await this.vehicleRepo.save(vehicle);
+
+    if (oldImage?.id) {
+      await this.uploadService.deleteUpload(oldImage.id, user);
+    }
+
+    return {
+      message: `${vehicle.brand + vehicle.model} Image Updated Successfully`,
+    };
   }
 
   findOne: FindOneFn<Vehicle> = (where, select, relations) => {

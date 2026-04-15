@@ -1,4 +1,5 @@
 import NepaliDate from 'nepali-date-converter';
+import { Upload } from 'src/app/upload/entities/upload.entity';
 import { User } from 'src/app/user/entities/user.entity';
 import { MasterData } from 'src/master-data/entities/md_bikes.entity';
 import {
@@ -6,7 +7,9 @@ import {
   BeforeUpdate,
   Column,
   Entity,
+  JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -24,6 +27,10 @@ export class Vehicle {
 
   @ManyToOne(() => User, (user) => user.vehicles)
   user: User;
+
+  @OneToOne(() => Upload, { nullable: true })
+  @JoinColumn({ name: 'vehicleImageId' })
+  vehicleImage: Upload;
 
   @ManyToOne(() => MasterData, (data) => data.userVehicle, {
     nullable: true,

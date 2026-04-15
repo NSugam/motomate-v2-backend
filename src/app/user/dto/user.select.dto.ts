@@ -4,6 +4,7 @@ export const userRelations = {
   vehicles: true,
   defaultVehicle: {
     masterData: true,
+    vehicleImage: true,
   },
 };
 
@@ -32,6 +33,11 @@ export const userSelectWithRelation = {
       torque: true,
       cooling: true,
       total_weight: true,
+    },
+    vehicleImage: {
+      id: true,
+      url: true,
+      type: true,
     },
   },
 };
