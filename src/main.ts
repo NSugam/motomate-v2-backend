@@ -6,6 +6,8 @@ import { config } from 'dotenv';
 import { AppModule } from './app.module';
 import { env } from './config/env';
 import { SuccessResponseInterceptor } from './interceptor/response.interceptor';
+import * as dns from 'dns';
+dns.setDefaultResultOrder('ipv4first');
 
 config();
 const PORT = env.PORT;
