@@ -19,6 +19,10 @@ export const typeOrmConfigs = () => {
       join(__dirname, `/../database/subscribers/**.subscriber.{ts,js}`),
     ],
     synchronize: true,
+
+    ssl: {
+      rejectUnauthorized: false,
+    },
   };
 
   return obj;
