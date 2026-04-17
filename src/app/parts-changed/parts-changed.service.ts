@@ -151,6 +151,7 @@ export class PartsChangedService {
   ): Promise<[PartsChanged[], number]> {
     const qb = this.partsChangedRepo
       .createQueryBuilder('pc')
+      .distinctOn(['pc.partId']) // ✅ key fix
       .leftJoinAndSelect('pc.part', 'part')
       .leftJoinAndSelect('part.partReminder', 'partReminder')
       .leftJoinAndSelect('pc.servicing', 'servicing')
@@ -164,48 +165,33 @@ export class PartsChangedService {
       qb.andWhere('partReminder.id IS NOT NULL');
     }
 
-    qb.andWhere((qb) => {
-      const subQuery = qb
-        .subQuery()
-        .select('pc2.id')
-        .from('parts_changed', 'pc2')
-        .where('pc2.partId = pc.partId')
-        .andWhere('pc2.userId = :userId')
-        .andWhere('pc2.vehicleId = :vehicleId')
-        .andWhere('pc2.fromServicing = :fromServicing', {
-          fromServicing: fromServicing ?? true,
-        })
-        .orderBy('pc2.odoReading', 'DESC')
-        .limit(1)
-        .getQuery();
+    qb.select([
+      'pc.id',
+      'pc.createdAt',
+      'pc.odoReading',
+      'pc.englishDate',
+      'pc.nepaliDate',
+      'pc.cost',
+      'pc.fromServicing',
 
-      return 'pc.id = ' + subQuery;
-    })
-      .select([
-        'pc.id',
-        'pc.createdAt',
-        'pc.odoReading',
-        'pc.englishDate',
-        'pc.nepaliDate',
-        'pc.cost',
-        'pc.fromServicing',
+      'part.id',
+      'part.name',
+      'part.description',
 
-        'part.id',
-        'part.name',
-        'part.description',
+      'partReminder.id',
+      'partReminder.type',
+      'partReminder.odoInterval',
+      'partReminder.dateInterval',
 
-        'partReminder.id',
-        'partReminder.type',
-        'partReminder.odoInterval',
-        'partReminder.dateInterval',
-
-        'servicing.id',
-        'servicing.counter',
-        'servicing.englishDate',
-        'servicing.nepaliDate',
-        'servicing.odoReading',
-      ])
-      .orderBy('pc.odoReading', 'DESC');
+      'servicing.id',
+      'servicing.counter',
+      'servicing.englishDate',
+      'servicing.nepaliDate',
+      'servicing.odoReading',
+    ])
+      .orderBy('pc.partId', 'ASC')
+      .addOrderBy('pc.odoReading', 'DESC')
+      .addOrderBy('pc.id', 'DESC');
 
     const data = await qb.getMany();
     return [data, data.length];
