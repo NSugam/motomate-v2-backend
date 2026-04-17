@@ -23,6 +23,12 @@ export const typeOrmConfigs = () => {
     ssl: {
       rejectUnauthorized: false,
     },
+
+    extra: {
+      ssl: {
+        rejectUnauthorized: false,
+      },
+    },
   };
 
   return obj;
