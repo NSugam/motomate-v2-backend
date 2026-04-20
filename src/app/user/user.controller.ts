@@ -7,12 +7,13 @@ import {
   Patch,
   Query,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { UserFilterType } from 'src/common/common.type';
 import { OrmWhereType } from 'src/common/orm.type';
 import { GetUser, UserFilter } from 'src/decorators/get-user.decorator';
 import { ILike } from 'typeorm';
 import { RoleDto } from './dto/role-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { ChangePasswordDTO, UpdateUserDto } from './dto/update-user.dto';
 import { userRelations, userSelectWithRelation } from './dto/user.select.dto';
 import { User } from './entities/user.entity';
 import { UserService } from './user.service';
@@ -33,6 +34,15 @@ export class UserController {
     @UserFilter() { userId }: UserFilterType,
   ) {
     return this.usersService.update(userId, updateDetails);
+  }
+
+  @Patch('change-password')
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  changePassword(
+    @GetUser() user: LoggedInUser,
+    @Body() dto: ChangePasswordDTO,
+  ) {
+    return this.usersService.changePassword(user, dto);
   }
 
   @Get()

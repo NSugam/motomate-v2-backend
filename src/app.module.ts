@@ -4,8 +4,9 @@ import {
   NestModule,
   RequestMethod,
 } from '@nestjs/common';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { join } from 'path';
@@ -43,6 +44,14 @@ import { VersionControlModule } from './version-control/version-control.module';
       serveStaticOptions: {},
       rootPath: join(__dirname, '..'),
     }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60000, // expressed in micro secounds (default: 10 hits in 1 min)
+          limit: 10,
+        },
+      ],
+    }),
 
     HealthModule,
     AuthModule,
@@ -68,6 +77,10 @@ import { VersionControlModule } from './version-control/version-control.module';
     {
       provide: APP_FILTER,
       useClass: SentryGlobalFilter,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
     SuccessResponseInterceptor,
   ],
