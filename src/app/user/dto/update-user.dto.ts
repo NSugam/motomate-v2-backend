@@ -43,3 +43,14 @@ export class ChangePasswordDTO {
   @IsString()
   confirmNewPassword: string;
 }
+export class PermanentDeleteAccountDTO {
+  @ApiProperty({ example: 'sugam@gmail.com' })
+  @IsNotEmpty()
+  @IsString()
+  email: string;
+
+  @ApiProperty({ example: 'sugam123' })
+  @IsNotEmpty()
+  @IsString()
+  password: string;
+}

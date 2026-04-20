@@ -6,6 +6,7 @@ import { VehicleModule } from '../vehicle/vehicle.module';
 import { User } from './entities/user.entity';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
+import { UploadModule } from '../upload/upload.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { UserService } from './user.service';
     ConfigModule,
     TypeOrmModule.forFeature([User]),
     VehicleModule,
+    UploadModule,
   ],
   controllers: [UserController],
   providers: [UserService],

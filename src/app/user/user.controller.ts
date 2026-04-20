@@ -13,7 +13,11 @@ import { OrmWhereType } from 'src/common/orm.type';
 import { GetUser, UserFilter } from 'src/decorators/get-user.decorator';
 import { ILike } from 'typeorm';
 import { RoleDto } from './dto/role-user.dto';
-import { ChangePasswordDTO, UpdateUserDto } from './dto/update-user.dto';
+import {
+  ChangePasswordDTO,
+  PermanentDeleteAccountDTO,
+  UpdateUserDto,
+} from './dto/update-user.dto';
 import { userRelations, userSelectWithRelation } from './dto/user.select.dto';
 import { User } from './entities/user.entity';
 import { UserService } from './user.service';
@@ -86,5 +90,11 @@ export class UserController {
   @Delete(':id')
   delete(@Param('id') id: string, @UserFilter() { userId }: UserFilterType) {
     return this.usersService.deleteById(userId ? userId : id);
+  }
+
+  @Delete('/permanent')
+  @Throttle({ default: { limit: 2, ttl: 3600000 } }) // 1 hour limit
+  permanentDelete(@Query() { email, password }: PermanentDeleteAccountDTO) {
+    return this.usersService.permanentDelete(email, password);
   }
 }
