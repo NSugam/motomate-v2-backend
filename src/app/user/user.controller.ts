@@ -69,6 +69,12 @@ export class UserController {
     );
   }
 
+  @Delete('/permanent')
+  // @Throttle({ default: { limit: 2, ttl: 3600000 } }) // 1 hour limit
+  permanentDelete(@Query() { email, password }: PermanentDeleteAccountDTO) {
+    return this.usersService.permanentDelete(email, password);
+  }
+
   @Get(':id')
   findById(@Param('id') id: string, @UserFilter() { userId }: UserFilterType) {
     return this.usersService.findOrFail(
@@ -90,11 +96,5 @@ export class UserController {
   @Delete(':id')
   delete(@Param('id') id: string, @UserFilter() { userId }: UserFilterType) {
     return this.usersService.deleteById(userId ? userId : id);
-  }
-
-  @Delete('/permanent')
-  @Throttle({ default: { limit: 2, ttl: 3600000 } }) // 1 hour limit
-  permanentDelete(@Query() { email, password }: PermanentDeleteAccountDTO) {
-    return this.usersService.permanentDelete(email, password);
   }
 }

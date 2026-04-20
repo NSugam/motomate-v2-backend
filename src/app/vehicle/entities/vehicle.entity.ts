@@ -25,10 +25,15 @@ export class Vehicle {
   })
   createdAt: Date;
 
-  @ManyToOne(() => User, (user) => user.vehicles)
+  @ManyToOne(() => User, (user) => user.vehicles, {
+    onDelete: 'CASCADE',
+  })
   user: User;
 
-  @OneToOne(() => Upload, { nullable: true })
+  @OneToOne(() => Upload, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
   @JoinColumn({ name: 'vehicleImageId' })
   vehicleImage: Upload;
 

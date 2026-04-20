@@ -10,6 +10,11 @@ import { VehicleService } from 'src/app/vehicle/vehicle.service';
 import { FindAndCountFn, FindOrFailFn } from 'src/common/orm.type';
 import { generateTakeSkip } from 'src/helper/utils';
 import { DataSource, EntityManager, Repository } from 'typeorm';
+import { Fillups } from '../fillups/entities/fillup.entity';
+import { Part } from '../part/entities/part.entity';
+import { PartsChanged } from '../parts-changed/entities/parts-changed.entity';
+import { PartsReminder } from '../parts-reminder/entities/parts-reminder.entity';
+import { Servicing } from '../servicing/entities/servicing.entity';
 import { UploadService } from '../upload/upload.service';
 import { ChangePasswordDTO, UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -169,53 +174,35 @@ export class UserService {
     await queryRunner.startTransaction();
 
     try {
-      const userData = await queryRunner.manager.findOne(User, {
+      const user = await queryRunner.manager.findOne(User, {
         where: { email },
         relations: ['vehicles', 'vehicles.vehicleImage'],
         withDeleted: true,
       });
 
-      if (!userData) {
-        throw new NotFoundException('User not found');
-      }
+      if (!user) throw new NotFoundException('User not found');
 
-      if (userData.email === 'test@gmail.com') {
-        throw new UnauthorizedException('This account cannot be deleted');
-      }
+      const isValid = await bcrypt.compare(password, user.password);
+      if (!isValid) throw new UnauthorizedException('Invalid password');
 
-      const isPasswordValid = await bcrypt.compare(password, userData.password);
-
-      if (!isPasswordValid) {
-        throw new UnauthorizedException('Invalid password');
-      }
-
-      // 🔥 delete all vehicle images
-      for (const vehicle of userData.vehicles || []) {
+      for (const vehicle of user.vehicles || []) {
         if (vehicle.vehicleImage?.id) {
-          await this.uploadService.deleteUpload(
-            vehicle.vehicleImage.id,
-            userData,
-          );
+          await this.uploadService.deleteUpload(vehicle.vehicleImage.id, user);
         }
       }
 
-      // 🔥 delete vehicles (if cascade not set)
-      await queryRunner.manager.delete('vehicle', {
-        userId: userData.id,
-      });
-
-      // 🔥 delete user
-      await queryRunner.manager.delete(User, userData.id);
-
+      await queryRunner.manager.delete(Servicing, { userId: user.id });
+      await queryRunner.manager.delete(PartsChanged, { userId: user.id });
+      await queryRunner.manager.delete(PartsReminder, { userId: user.id });
+      await queryRunner.manager.delete(Fillups, { userId: user.id });
+      await queryRunner.manager.delete(Part, { userId: user.id });
+      await queryRunner.manager.delete(User, user.id);
       await queryRunner.commitTransaction();
 
-      return {
-        message: 'Account permanently deleted',
-        success: true,
-      };
-    } catch (error) {
+      return { message: 'Account deleted' };
+    } catch (e) {
       await queryRunner.rollbackTransaction();
-      throw error;
+      throw e;
     } finally {
       await queryRunner.release();
     }

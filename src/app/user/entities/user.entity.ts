@@ -17,7 +17,7 @@ export class User {
   @Column({ type: 'bigint', name: 'defaultVehicleId', nullable: true })
   defaultVehicleId: string;
 
-  @OneToOne(() => Vehicle, (vehicle) => vehicle.user, { nullable: true })
+  @OneToOne(() => Vehicle, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'defaultVehicleId' })
   defaultVehicle: Vehicle;
 
@@ -56,6 +56,8 @@ export class User {
   })
   role: UserRoleENUM;
 
-  @OneToMany(() => Vehicle, (vehicle) => vehicle.user)
+  @OneToMany(() => Vehicle, (vehicle) => vehicle.user, {
+    cascade: false,
+  })
   vehicles: Vehicle[];
 }
