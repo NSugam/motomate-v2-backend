@@ -19,7 +19,8 @@ async function bootstrap() {
     origin: [
       'http://localhost:3000',
       'http://localhost:5173',
-      'http://localhost:5174',
+      'https://motomate.cbtech.com.np',
+      'https://motomate.neupanesugam.com.np',
     ],
     credentials: true,
   });
