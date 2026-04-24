@@ -125,6 +125,7 @@ export class PartsChangedService {
 
     const totalsRaw = await this.partsChangedRepo
       .createQueryBuilder('pc')
+      .leftJoin('pc.part', 'part')
       .select('COALESCE(SUM(pc.cost), 0)', 'totalPartsCost')
       .where(where)
       .andWhere('pc.fromServicing = :fromServicing', { fromServicing: false })
@@ -149,17 +150,25 @@ export class PartsChangedService {
     fromServicing?: boolean,
     checkReminder?: boolean,
   ): Promise<[PartsChanged[], number]> {
-    const qb = this.partsChangedRepo
+    const subQuery = this.partsChangedRepo
       .createQueryBuilder('pc')
-      .distinctOn(['pc.partId']) // ✅ key fix
-      .leftJoinAndSelect('pc.part', 'part')
-      .leftJoinAndSelect('part.partReminder', 'partReminder')
-      .leftJoinAndSelect('pc.servicing', 'servicing')
+      .select('DISTINCT ON (pc.partId) pc.id', 'id')
       .where('pc.userId = :userId', { userId })
       .andWhere('pc.vehicleId = :vehicleId', { vehicleId })
       .andWhere('pc.fromServicing = :fromServicing', {
         fromServicing: fromServicing ?? true,
-      });
+      })
+      .orderBy('pc.partId', 'ASC')
+      .addOrderBy('pc.odoReading', 'DESC')
+      .addOrderBy('pc.id', 'DESC');
+
+    const qb = this.partsChangedRepo
+      .createQueryBuilder('pc')
+      .innerJoin(`(${subQuery.getQuery()})`, 'latest', 'latest.id = pc.id')
+      .leftJoinAndSelect('pc.part', 'part')
+      .leftJoinAndSelect('part.partReminder', 'partReminder')
+      .leftJoinAndSelect('pc.servicing', 'servicing')
+      .setParameters(subQuery.getParameters());
 
     if (checkReminder) {
       qb.andWhere('partReminder.id IS NOT NULL');
@@ -189,8 +198,7 @@ export class PartsChangedService {
       'servicing.nepaliDate',
       'servicing.odoReading',
     ])
-      .orderBy('pc.partId', 'ASC')
-      .addOrderBy('pc.odoReading', 'DESC')
+      .orderBy('pc.odoReading', 'DESC')
       .addOrderBy('pc.id', 'DESC');
 
     const data = await qb.getMany();
