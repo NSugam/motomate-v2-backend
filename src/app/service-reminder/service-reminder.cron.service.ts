@@ -27,12 +27,6 @@ export class ServiceReminderCronService {
     const reminders = await this.reminderRepo.find();
 
     for (const reminder of reminders) {
-      console.log(
-        'Checking reminder for userId:',
-        reminder.userId,
-        'vehicleId:',
-        reminder.vehicleId,
-      );
       try {
         const user = await this.userRepo.findOne({
           where: { id: reminder.userId },
@@ -42,7 +36,7 @@ export class ServiceReminderCronService {
           where: { id: reminder.vehicleId },
         });
 
-        // if (!user || !vehicle) continue;
+        if (!user || !vehicle) continue;
 
         await this.serviceReminderService.getDueReminder(user, {
           userId: reminder.userId,

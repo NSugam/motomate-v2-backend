@@ -135,12 +135,11 @@ export class ServiceReminderService {
     ) {
       if (reminder.odoInterval) {
         nextOdo = Number(lastService.odoReading) + reminder.odoInterval;
-        remainingKm = nextOdo - currentOdo;
+        remainingKm = Math.max(0, nextOdo - currentOdo);
         odoDue = currentOdo >= nextOdo;
       }
     }
 
-    /* ================= DATE ================= */
     if (
       reminder.type === ReminderTypeENUM.DATE ||
       reminder.type === ReminderTypeENUM.BOTH
@@ -158,7 +157,6 @@ export class ServiceReminderService {
 
         const today = new Date();
 
-        // remove time for accurate day diff
         const diffTime =
           nextDate.setHours(0, 0, 0, 0) - today.setHours(0, 0, 0, 0);
 
