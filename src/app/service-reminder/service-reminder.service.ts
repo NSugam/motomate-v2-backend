@@ -4,6 +4,8 @@ import NepaliDate from 'nepali-date-converter';
 import { UserFilterType } from 'src/common/common.type';
 import { FindOneFn, FindOrFailFn } from 'src/common/orm.type';
 import { Repository } from 'typeorm';
+import { NotificationTypeENUM } from '../notification/dto/create-notification.dto';
+import { NotificationService } from '../notification/notification.service';
 import { Servicing } from '../servicing/entities/servicing.entity';
 import { LoggedInUser } from '../user/user.type';
 import { ReminderTypeENUM } from './dto/reminder.types';
@@ -17,6 +19,7 @@ export class ServiceReminderService {
     private readonly reminderRepo: Repository<ServiceReminder>,
     @InjectRepository(Servicing)
     private readonly servicingRepo: Repository<Servicing>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async create(payload: CreateServiceReminderDTO, user: LoggedInUser) {
@@ -68,6 +71,12 @@ export class ServiceReminderService {
 
     const saved = await this.reminderRepo.save(data);
 
+    await this.getDueReminder(user, {
+      userId: user.id,
+      vehicleId: user.defaultVehicleId,
+      currentOdo: user.defaultVehicle.odoReading,
+    });
+
     return {
       message: existing
         ? 'Service Reminder Updated Successfully'
@@ -88,7 +97,10 @@ export class ServiceReminderService {
     return this.reminderRepo.findOneOrFail({ where, select, relations });
   };
 
-  async getDueReminder({ userId, vehicleId, currentOdo }: UserFilterType) {
+  async getDueReminder(
+    user: LoggedInUser,
+    { userId, vehicleId, currentOdo }: UserFilterType,
+  ) {
     const reminder = await this.reminderRepo.findOne({
       where: { userId, vehicleId },
     });
@@ -163,6 +175,15 @@ export class ServiceReminderService {
         : reminder.type === ReminderTypeENUM.ODO
           ? odoDue
           : dateDue;
+
+    if (daysLeft !== null && daysLeft <= 7 && !isDue) {
+      console.log('Sending reminder notification, days left:', daysLeft);
+      await this.notificationService.createAndSend(user, {
+        title: 'Service Reminder 🚨',
+        body: `Your vehicle is due for service in ${daysLeft} days.`,
+        type: NotificationTypeENUM.SERVICE_REMINDER,
+      });
+    }
 
     return {
       due: isDue,

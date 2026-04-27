@@ -18,9 +18,10 @@ export class ServiceReminderController {
 
   @Get('due-reminders')
   getDueReminders(
+    @GetUser() user: LoggedInUser,
     @UserFilter() { userId, vehicleId, currentOdo }: UserFilterType,
   ) {
-    return this.reminderService.getDueReminder({
+    return this.reminderService.getDueReminder(user, {
       userId,
       vehicleId,
       currentOdo,

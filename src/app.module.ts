@@ -5,6 +5,7 @@ import {
   RequestMethod,
 } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -52,6 +53,7 @@ import { VersionControlModule } from './version-control/version-control.module';
         },
       ],
     }),
+    ScheduleModule.forRoot(),
 
     HealthModule,
     AuthModule,

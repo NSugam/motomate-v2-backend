@@ -1,26 +1,25 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
-import { NotificationService } from './notification.service';
-import { CreateNotificationDTO } from './dto/create-notification.dto';
+import { Body, Controller, Get, Param, Patch } from '@nestjs/common';
 import { GetUser } from 'src/decorators/get-user.decorator';
 import { LoggedInUser } from '../user/user.type';
+import { CreateNotificationDTO } from './dto/create-notification.dto';
+import { NotificationService } from './notification.service';
 
-@Controller('notification')
+@Controller('notifications')
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 
-  @Post('send')
-  sendNotification(
-    @GetUser() user: LoggedInUser,
-    @Body() createNotificationDto: CreateNotificationDTO,
-  ) {
-    return this.notificationService.sendExpoNotification(
-      createNotificationDto,
-      user,
-    );
+  @Get()
+  getMyNotifications(@GetUser() user: LoggedInUser) {
+    return this.notificationService.getUserNotifications(user.id);
   }
 
-  @Get()
-  findAll() {
-    return this.notificationService.findAll();
+  @Patch(':id/read')
+  markRead(@Param('id') id: string, @GetUser() user: LoggedInUser) {
+    return this.notificationService.markAsRead(id, user.id);
+  }
+
+  @Patch('test')
+  test(@GetUser() user: LoggedInUser, @Body() body: CreateNotificationDTO) {
+    return this.notificationService.createAndSend(user, body);
   }
 }

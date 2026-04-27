@@ -19,6 +19,7 @@ import { UploadService } from '../upload/upload.service';
 import { ChangePasswordDTO, UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { LoggedInUser, UserRoleENUM } from './user.type';
+import { UserDevice } from './entities/user.device.entity';
 
 @Injectable()
 export class UserService {
@@ -29,9 +30,12 @@ export class UserService {
     private readonly vehicleService: VehicleService,
     private readonly uploadService: UploadService,
     private readonly dataSource: DataSource,
+    @InjectRepository(UserDevice)
+    private deviceRepo: Repository<UserDevice>,
   ) {}
 
   getProfile(user: LoggedInUser) {
+    delete user.devices;
     return {
       message: 'Logged-In User Data',
       user,
@@ -90,11 +94,32 @@ export class UserService {
     }
 
     //defaultVehicleId should be updated only if it is not null
-    if (updateDetails.defaultVehicleId) {
+    if (
+      updateDetails.defaultVehicleId !== undefined &&
+      updateDetails.defaultVehicleId !== null
+    ) {
       await this.vehicleService.findOrFail({
         id: updateDetails.defaultVehicleId,
       });
       userData.defaultVehicleId = updateDetails.defaultVehicleId;
+    }
+
+    if (updateDetails.ExpoToken) {
+      const existingDevice = await this.deviceRepo.findOne({
+        where: {
+          expoToken: updateDetails.ExpoToken,
+        },
+      });
+
+      if (!existingDevice) {
+        const device = this.deviceRepo.create({
+          expoToken: updateDetails.ExpoToken,
+          user: userData,
+        });
+
+        await this.deviceRepo.save(device);
+      }
+      delete updateDetails.ExpoToken;
     }
 
     this.userRepo.merge(userData, updateDetails);

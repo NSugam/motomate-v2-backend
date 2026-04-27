@@ -70,7 +70,7 @@ export class UserController {
   }
 
   @Delete('/permanent')
-  // @Throttle({ default: { limit: 2, ttl: 3600000 } }) // 1 hour limit
+  @Throttle({ default: { limit: 2, ttl: 3600000 } }) // 1 hour limit
   permanentDelete(@Query() { email, password }: PermanentDeleteAccountDTO) {
     return this.usersService.permanentDelete(email, password);
   }

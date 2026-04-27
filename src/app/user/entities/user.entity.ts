@@ -8,6 +8,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { UserRoleENUM } from '../user.type';
+import { UserDevice } from './user.device.entity';
 
 @Entity('users')
 export class User {
@@ -46,8 +47,8 @@ export class User {
   @Column({ type: 'text' })
   password: string;
 
-  @Column({ type: 'text', nullable: true })
-  ExpoToken: string;
+  @OneToMany(() => UserDevice, (device) => device.user)
+  devices: UserDevice[];
 
   @Column({
     type: 'enum',

@@ -1,6 +1,7 @@
 import { vehicleSelectFields } from 'src/app/vehicle/dto/vehicle.select.dto';
 
 export const userRelations = {
+  devices: true,
   vehicles: true,
   defaultVehicle: {
     masterData: true,
@@ -18,7 +19,10 @@ export const userSelectFields = {
   email: true,
   verified: true,
   role: true,
-  ExpoToken: true,
+  devices: {
+    id: true,
+    expoToken: true,
+  },
 };
 
 export const userSelectWithRelation = {
