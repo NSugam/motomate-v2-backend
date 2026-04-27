@@ -2,31 +2,35 @@ import { Controller, Get } from '@nestjs/common';
 import { SkipThrottle } from '@nestjs/throttler';
 import { DataSource } from 'typeorm';
 
-@SkipThrottle()
 @Controller('health-check')
 export class HealthController {
   constructor(private dataSource: DataSource) {}
 
+  // Healthcheck Only Endpoint
   @Get()
-  async check() {
-    let dbStatus = 'unknown';
+  @SkipThrottle()
+  check() {
+    return {
+      status: 'ok',
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  // DB Check Endpoint
+  @Get('db')
+  async dbCheck() {
     try {
       await this.dataSource.query('SELECT 1');
-      dbStatus = 'ok';
+      return {
+        db: 'ok',
+        message: 'Database Connected',
+      };
     } catch {
-      dbStatus = 'down';
+      return {
+        db: 'down',
+        message: 'Database connection failed',
+      };
     }
-
-    const uptime = process.uptime();
-    return {
-      data: {
-        DBConnection:
-          dbStatus === 'ok'
-            ? 'Database Connected'
-            : 'Database connection failed',
-        uptime,
-        timestamp: new Date().toISOString(),
-      },
-    };
   }
 }
