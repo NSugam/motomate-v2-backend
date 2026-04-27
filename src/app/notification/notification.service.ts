@@ -31,7 +31,7 @@ export class NotificationService {
       order: { createdAt: 'DESC' },
     });
 
-    if (exists && !this.isRecent(exists.createdAt)) {
+    if (exists && this.isRecent(exists.createdAt)) {
       return {
         success: false,
         message: 'Already notified recently',
