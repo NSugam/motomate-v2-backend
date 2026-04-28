@@ -174,14 +174,13 @@ export class ServiceReminderService {
           ? odoDue
           : dateDue;
 
-    if (daysLeft !== null && daysLeft <= 7 && !isDue) {
-      console.log('Sending reminder notification, days left:', daysLeft);
-      await this.notificationService.createAndSend(user, {
-        title: 'Service Reminder 🚨',
-        body: `Your vehicle is due for service in ${daysLeft} days.`,
-        type: NotificationTypeENUM.SERVICE_REMINDER,
-      });
-    }
+    await this.sendServiceReminders(user, {
+      isDue,
+      daysLeft,
+      remainingKm,
+      odoDue,
+      dateDue,
+    });
 
     return {
       due: isDue,
@@ -211,5 +210,137 @@ export class ServiceReminderService {
         daysLeft,
       },
     };
+  }
+
+  /**
+   * Send service reminder notifications based on urgency and type
+   * Reusable function that can be called from multiple places
+   */
+  async sendServiceReminders(
+    user: LoggedInUser,
+    reminderData: {
+      isDue: boolean;
+      daysLeft: number | null;
+      remainingKm: number | null;
+      odoDue: boolean;
+      dateDue: boolean;
+    },
+  ) {
+    const { isDue, daysLeft, remainingKm, odoDue, dateDue } = reminderData;
+
+    // Overdue notifications with specific type information
+    if (isDue) {
+      if (odoDue && dateDue) {
+        console.log('Sending overdue service notification (both odo and date)');
+        await this.notificationService.createAndSend(user, {
+          title: 'Service Overdue! 🚨',
+          body: `Your vehicle service is overdue by both mileage and time. Please schedule service immediately.`,
+          type: NotificationTypeENUM.SERVICE_REMINDER,
+          meta: { priority: 'high', type: 'overdue_both', odoDue, dateDue },
+        });
+      } else if (odoDue) {
+        console.log('Sending overdue service notification (odo only)');
+        await this.notificationService.createAndSend(user, {
+          title: 'Service Overdue! 🚨',
+          body: `Your vehicle service is overdue by mileage. Please schedule service immediately.`,
+          type: NotificationTypeENUM.SERVICE_REMINDER,
+          meta: { priority: 'high', type: 'overdue_odo', odoDue, dateDue },
+        });
+      } else if (dateDue) {
+        console.log('Sending overdue service notification (date only)');
+        await this.notificationService.createAndSend(user, {
+          title: 'Service Overdue! 🚨',
+          body: `Your vehicle service is overdue by time. Please schedule service immediately.`,
+          type: NotificationTypeENUM.SERVICE_REMINDER,
+          meta: { priority: 'high', type: 'overdue_date', odoDue, dateDue },
+        });
+      }
+    }
+
+    // Upcoming reminders with escalating urgency
+    if (daysLeft !== null && !isDue) {
+      if (daysLeft <= 3) {
+        console.log(
+          'Sending urgent reminder notification, days left:',
+          daysLeft,
+        );
+        await this.notificationService.createAndSend(user, {
+          title: 'Service Due Soon! ⚠️',
+          body: `Your vehicle is due for service in ${daysLeft} day${daysLeft === 1 ? '' : 's'}.`,
+          type: NotificationTypeENUM.SERVICE_REMINDER,
+          meta: { priority: 'high', type: 'urgent', daysLeft, odoDue, dateDue },
+        });
+      } else if (daysLeft <= 7) {
+        console.log(
+          'Sending standard reminder notification, days left:',
+          daysLeft,
+        );
+        await this.notificationService.createAndSend(user, {
+          title: 'Service Reminder 🚨',
+          body: `Your vehicle is due for service in ${daysLeft} days.`,
+          type: NotificationTypeENUM.SERVICE_REMINDER,
+          meta: {
+            priority: 'medium',
+            type: 'standard',
+            daysLeft,
+            odoDue,
+            dateDue,
+          },
+        });
+      } else if (daysLeft <= 14) {
+        console.log(
+          'Sending early reminder notification, days left:',
+          daysLeft,
+        );
+        await this.notificationService.createAndSend(user, {
+          title: 'Service Planning 📅',
+          body: `Your vehicle will be due for service in ${daysLeft} days.`,
+          type: NotificationTypeENUM.SERVICE_REMINDER,
+          meta: {
+            priority: 'low',
+            type: 'planning',
+            daysLeft,
+            odoDue,
+            dateDue,
+          },
+        });
+      }
+    }
+
+    // Odometer-based alerts
+    if (remainingKm !== null && !isDue) {
+      if (remainingKm <= 100) {
+        console.log(
+          'Sending critical odometer reminder, remaining km:',
+          remainingKm,
+        );
+        await this.notificationService.createAndSend(user, {
+          title: 'Service Due Soon! ⚠️',
+          body: `Your vehicle is due for service in ${remainingKm} km.`,
+          type: NotificationTypeENUM.SERVICE_REMINDER,
+          meta: {
+            priority: 'high',
+            type: 'odo_urgent',
+            remainingKm,
+            odoDue,
+            dateDue,
+          },
+        });
+      } else if (remainingKm <= 500) {
+        console.log('Sending odometer reminder, remaining km:', remainingKm);
+        await this.notificationService.createAndSend(user, {
+          title: 'Service Planning 📊',
+          body: `Your vehicle will be due for service in ${remainingKm} km.`,
+          type: NotificationTypeENUM.SERVICE_REMINDER,
+          meta: {
+            priority: 'medium',
+            type: 'odo_standard',
+            remainingKm,
+            odoDue,
+            dateDue,
+          },
+        });
+      }
+    }
   }
 }

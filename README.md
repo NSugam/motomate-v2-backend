@@ -23,7 +23,36 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+MotoMate v2 Backend - Production-ready vehicle service management system with intelligent service reminders and advanced notification system.
+
+## 🚀 Key Features
+
+### Service Reminder System
+
+- **Automated Cron Jobs**: Runs every 2 hours to check service reminders
+- **Smart Reminder Logic**: Supports odometer-based, time-based, and combined reminder types
+- **Priority-Based Notifications**:
+  - 🔴 High priority (1hr cooldown): Overdue alerts, urgent reminders (≤3 days), critical odometer alerts (≤100km)
+  - 🟡 Medium priority (6hr cooldown): Standard reminders (≤7 days), odometer planning (≤500km)
+  - 🟢 Low priority (24hr cooldown): Planning reminders (≤14 days)
+- **Batch Processing**: Handles high volumes with parallel processing (10 reminders per batch)
+- **Comprehensive Logging**: Detailed performance metrics and error tracking
+
+### Advanced Notification System
+
+- **Push Notifications**: Expo SDK integration for mobile notifications
+- **Retry Logic**: Exponential backoff retry mechanism (up to 3 attempts)
+- **Token Management**: Automatic cleanup of invalid/expired push tokens
+- **Delivery Tracking**: Real-time delivery status monitoring with PostgreSQL JSONB storage
+- **Priority Mapping**: Smart mapping of internal priorities to Expo-compatible levels
+
+### Production-Ready Architecture
+
+- **Error Handling**: Comprehensive error recovery with structured logging
+- **Database Optimization**: PostgreSQL-compatible JSON operations with proper type casting
+- **Scalable Design**: Parallel processing and efficient database queries
+- **Monitoring**: Performance metrics and operational visibility
+- **Reusable Components**: Modular service architecture for easy maintenance
 
 ## Project setup
 
@@ -43,6 +72,77 @@ $ npm run start:dev
 # production mode
 $ npm run start:prod
 ```
+
+## 📋 API Endpoints
+
+### Service Reminders
+
+- `GET /api/service-reminder` - Get user's service reminders
+- `POST /api/service-reminder` - Create/update service reminder
+- `GET /api/service-reminder/:id` - Get specific reminder details
+
+### Notifications
+
+- `GET /api/notification` - Get user notifications
+- `POST /api/notification/mark-read/:id` - Mark notification as read
+
+## 🔄 Notification Flow
+
+### Cron Job Schedule
+
+```
+Schedule: Every 2 hours (0 */2 * * *)
+Process: Check reminders → Send notifications → Track delivery
+```
+
+### Notification Logic
+
+1. **Overdue Detection**: Checks if service is past due by mileage, time, or both
+2. **Upcoming Alerts**: Sends escalating reminders based on urgency
+3. **Priority Enforcement**: Respects cooldowns to prevent notification spam
+4. **Delivery Tracking**: Monitors push notification delivery status
+
+### Notification Types
+
+- **Overdue**: High priority, immediate alerts for past-due services
+- **Urgent**: High priority, 3-day advance warnings
+- **Standard**: Medium priority, 7-day advance notices
+- **Planning**: Low priority, 14-day advance planning alerts
+
+## 🛠️ Configuration
+
+### Environment Variables
+
+Ensure these are configured in your `.env` file:
+
+```env
+DATABASE_URL=postgresql://...
+EXPO_ACCESS_TOKEN=your_expo_token
+PORT=9095
+```
+
+### Cron Job Configuration
+
+- **Frequency**: Every 2 hours
+- **Batch Size**: 10 reminders per batch
+- **Retry Logic**: 3 attempts with exponential backoff
+- **Cooldowns**: 1hr/6hr/24hr based on priority
+
+## 📊 Monitoring & Logging
+
+### Log Levels
+
+- **INFO**: Cron job start/completion, processing statistics
+- **DEBUG**: Individual reminder processing details
+- **WARN**: Missing data, invalid tokens
+- **ERROR**: Failed notifications, database errors
+
+### Performance Metrics
+
+- Execution time tracking
+- Success/failure rates
+- Token validation results
+- Database query performance
 
 ## Run tests
 
