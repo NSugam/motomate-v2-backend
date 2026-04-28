@@ -24,6 +24,13 @@ export class AuthService {
     private readonly entityManager: EntityManager,
   ) {}
 
+  cookieOptions = {
+    httpOnly: true,
+    secure: true, // true for swagger and production, false for react-native(local)
+    sameSite: 'none' as const,
+    path: '/',
+  };
+
   async createUser(payload: CreateUserDto) {
     const existingUser = await this.userEntity.findOne({
       where: { email: payload.email },
@@ -61,9 +68,7 @@ export class AuthService {
     });
 
     res.cookie('_xf_', token, {
-      httpOnly: true,
-      secure: true, // true for swagger and production, false for react-native(local)
-      sameSite: 'none',
+      ...this.cookieOptions,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
       // maxAge: 60 * 60 * 1000, // 1 hr
     });
@@ -89,8 +94,10 @@ export class AuthService {
 
   logout(res: Response) {
     res.cookie('_xf_', '', {
+      ...this.cookieOptions,
       expires: new Date(0),
     });
+
     return res
       .status(HttpStatus.OK)
       .json({ message: 'Account Logged Out', success: true });
