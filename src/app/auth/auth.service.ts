@@ -69,8 +69,7 @@ export class AuthService {
 
     res.cookie('_xf_', token, {
       ...this.cookieOptions,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
-      // maxAge: 60 * 60 * 1000, // 1 hr
+      maxAge: user.rememberMe ? 7 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000, // 1 week or 1 hour
     });
 
     const expiryTime = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
