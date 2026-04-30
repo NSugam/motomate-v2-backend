@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { NotificationTypeENUM } from '../notification/dto/create-notification.dto';
 import { NotificationService } from '../notification/notification.service';
 import { Servicing } from '../servicing/entities/servicing.entity';
+import { Vehicle } from '../vehicle/entities/vehicle.entity';
 import { LoggedInUser } from '../user/user.type';
 import { ReminderTypeENUM } from './dto/reminder.types';
 import { CreateServiceReminderDTO } from './dto/service-reminder.dto';
@@ -19,6 +20,8 @@ export class ServiceReminderService {
     private readonly reminderRepo: Repository<ServiceReminder>,
     @InjectRepository(Servicing)
     private readonly servicingRepo: Repository<Servicing>,
+    @InjectRepository(Vehicle)
+    private readonly vehicleRepo: Repository<Vehicle>,
     private readonly notificationService: NotificationService,
   ) {}
 
@@ -239,6 +242,14 @@ export class ServiceReminderService {
     });
     if (!reminder) return;
 
+    // Get vehicle details for notification context
+    const vehicle = await this.vehicleRepo.findOne({
+      where: { id: reminder.vehicleId },
+    });
+    const vehicleInfo = vehicle
+      ? `${vehicle.brand} ${vehicle.model}`
+      : 'Your vehicle';
+
     // Determine notification priority
     let priority = 'low';
 
@@ -259,26 +270,44 @@ export class ServiceReminderService {
       if (odoDue && dateDue) {
         console.log('Sending overdue service notification (both odo and date)');
         await this.notificationService.createAndSend(user, {
-          title: 'Service Overdue! 🚨',
-          body: `Your vehicle service is overdue by both mileage and time. Please schedule service immediately.`,
+          title: `${vehicleInfo} Service Overdue! 🚨`,
+          body: `Your ${vehicleInfo.toLowerCase()} service is overdue by both mileage and time. Please schedule service immediately.`,
           type: NotificationTypeENUM.SERVICE_REMINDER,
-          meta: { priority: 'high', type: 'overdue_both', odoDue, dateDue },
+          meta: {
+            priority: 'high',
+            type: 'overdue_both',
+            odoDue,
+            dateDue,
+            vehicleInfo,
+          },
         });
       } else if (odoDue) {
         console.log('Sending overdue service notification (odo only)');
         await this.notificationService.createAndSend(user, {
-          title: 'Service Overdue! 🚨',
-          body: `Your vehicle service is overdue by mileage. Please schedule service immediately.`,
+          title: `${vehicleInfo} Service Overdue! 🚨`,
+          body: `Your ${vehicleInfo.toLowerCase()} service is overdue by mileage. Please schedule service immediately.`,
           type: NotificationTypeENUM.SERVICE_REMINDER,
-          meta: { priority: 'high', type: 'overdue_odo', odoDue, dateDue },
+          meta: {
+            priority: 'high',
+            type: 'overdue_odo',
+            odoDue,
+            dateDue,
+            vehicleInfo,
+          },
         });
       } else if (dateDue) {
         console.log('Sending overdue service notification (date only)');
         await this.notificationService.createAndSend(user, {
-          title: 'Service Overdue! 🚨',
-          body: `Your vehicle service is overdue by time. Please schedule service immediately.`,
+          title: `${vehicleInfo} Service Overdue! 🚨`,
+          body: `Your ${vehicleInfo.toLowerCase()} service is overdue by time. Please schedule service immediately.`,
           type: NotificationTypeENUM.SERVICE_REMINDER,
-          meta: { priority: 'high', type: 'overdue_date', odoDue, dateDue },
+          meta: {
+            priority: 'high',
+            type: 'overdue_date',
+            odoDue,
+            dateDue,
+            vehicleInfo,
+          },
         });
       }
     }
@@ -302,10 +331,17 @@ export class ServiceReminderService {
           daysLeft,
         );
         await this.notificationService.createAndSend(user, {
-          title: 'Service Due Soon! ⚠️',
-          body: `Your vehicle is due for service in ${daysLeft} day${daysLeft === 1 ? '' : 's'}.`,
+          title: `${vehicleInfo} Service Due Soon! ⚠️`,
+          body: `Your ${vehicleInfo.toLowerCase()} is due for service in ${daysLeft} day${daysLeft === 1 ? '' : 's'}.`,
           type: NotificationTypeENUM.SERVICE_REMINDER,
-          meta: { priority: 'high', type: 'urgent', daysLeft, odoDue, dateDue },
+          meta: {
+            priority: 'high',
+            type: 'urgent',
+            daysLeft,
+            odoDue,
+            dateDue,
+            vehicleInfo,
+          },
         });
       } else if (daysLeft <= 7) {
         priority = 'medium';
@@ -325,8 +361,8 @@ export class ServiceReminderService {
           daysLeft,
         );
         await this.notificationService.createAndSend(user, {
-          title: 'Service Reminder 🚨',
-          body: `Your vehicle is due for service in ${daysLeft} days.`,
+          title: `${vehicleInfo} Service Reminder 🚨`,
+          body: `Your ${vehicleInfo.toLowerCase()} is due for service in ${daysLeft} days.`,
           type: NotificationTypeENUM.SERVICE_REMINDER,
           meta: {
             priority: 'medium',
@@ -334,6 +370,7 @@ export class ServiceReminderService {
             daysLeft,
             odoDue,
             dateDue,
+            vehicleInfo,
           },
         });
       } else if (daysLeft <= 14) {
@@ -354,8 +391,8 @@ export class ServiceReminderService {
           daysLeft,
         );
         await this.notificationService.createAndSend(user, {
-          title: 'Service Planning 📅',
-          body: `Your vehicle will be due for service in ${daysLeft} days.`,
+          title: `${vehicleInfo} Service Planning 📅`,
+          body: `Your ${vehicleInfo.toLowerCase()} will be due for service in ${daysLeft} days.`,
           type: NotificationTypeENUM.SERVICE_REMINDER,
           meta: {
             priority: 'low',
@@ -363,6 +400,7 @@ export class ServiceReminderService {
             daysLeft,
             odoDue,
             dateDue,
+            vehicleInfo,
           },
         });
       }
@@ -389,8 +427,8 @@ export class ServiceReminderService {
           remainingKm,
         );
         await this.notificationService.createAndSend(user, {
-          title: 'Service Due Soon! ⚠️',
-          body: `Your vehicle is due for service in ${remainingKm} km.`,
+          title: `${vehicleInfo} Service Due Soon! ⚠️`,
+          body: `Your ${vehicleInfo.toLowerCase()} is due for service in ${remainingKm} km.`,
           type: NotificationTypeENUM.SERVICE_REMINDER,
           meta: {
             priority: 'high',
@@ -398,6 +436,7 @@ export class ServiceReminderService {
             remainingKm,
             odoDue,
             dateDue,
+            vehicleInfo,
           },
         });
       } else if (remainingKm <= 500) {
@@ -415,8 +454,8 @@ export class ServiceReminderService {
 
         console.log('Sending odometer reminder, remaining km:', remainingKm);
         await this.notificationService.createAndSend(user, {
-          title: 'Service Planning 📊',
-          body: `Your vehicle will be due for service in ${remainingKm} km.`,
+          title: `${vehicleInfo} Service Planning 📊`,
+          body: `Your ${vehicleInfo.toLowerCase()} will be due for service in ${remainingKm} km.`,
           type: NotificationTypeENUM.SERVICE_REMINDER,
           meta: {
             priority: 'medium',
@@ -424,11 +463,11 @@ export class ServiceReminderService {
             remainingKm,
             odoDue,
             dateDue,
+            vehicleInfo,
           },
         });
       }
     }
-
     // Update the reminder with last notification info
     await this.reminderRepo.update(reminderId, {
       lastNotified: new Date(),
