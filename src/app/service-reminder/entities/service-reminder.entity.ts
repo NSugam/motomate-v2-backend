@@ -24,4 +24,10 @@ export class ServiceReminder {
 
   @Column({ type: 'int', default: 30, nullable: true })
   dateInterval?: number;
+
+  @Column({ type: 'timestamp', nullable: true })
+  lastNotified?: Date;
+
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  lastNotificationPriority?: string;
 }

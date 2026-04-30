@@ -1,21 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Expo, ExpoPushMessage } from 'expo-server-sdk';
-import { Repository } from 'typeorm';
 
 import { LoggedInUser } from '../user/user.type';
 import { CreateNotificationDTO } from './dto/create-notification.dto';
-import { Notification } from './entities/notification.entity';
 
 @Injectable()
 export class NotificationService {
   private readonly logger = new Logger(NotificationService.name);
   private readonly expo = new Expo();
 
-  constructor(
-    @InjectRepository(Notification)
-    private readonly notificationRepo: Repository<Notification>,
-  ) {}
+  constructor() {}
 
   async createAndSend(user: LoggedInUser, data: CreateNotificationDTO) {
     try {
@@ -31,48 +25,6 @@ export class NotificationService {
         };
       }
 
-      // Check for recent notifications with priority-based cooldown
-      const exists = await this.notificationRepo.findOne({
-        where: {
-          userId: user.id,
-          vehicleId,
-          type: data.type,
-        },
-        order: { createdAt: 'DESC' },
-      });
-
-      if (
-        exists &&
-        this.isRecent(
-          exists.createdAt,
-          (data.meta?.priority as string) || 'normal',
-        )
-      ) {
-        this.logger.debug(
-          `Skipping notification for user ${user.id} - recent notification exists`,
-        );
-        return {
-          success: false,
-          message: 'Already notified recently',
-        };
-      }
-
-      // Create and save notification
-      const notification = this.notificationRepo.create({
-        userId: user.id,
-        vehicleId,
-        title: data.title,
-        body: data.body,
-        type: data.type,
-        meta: {
-          ...data.meta,
-          deliveryStatus: 'pending',
-          createdAt: new Date().toISOString(),
-        },
-      });
-
-      const savedNotification = await this.notificationRepo.save(notification);
-
       // Get valid push tokens
       const tokens = (user.devices ?? [])
         .map((d) => d.expoToken)
@@ -87,53 +39,21 @@ export class NotificationService {
           (data.meta?.priority as string) || 'normal',
         );
 
-        // Update notification with delivery status
-        await this.notificationRepo
-          .createQueryBuilder()
-          .update(Notification)
-          .set({
-            meta: () => `jsonb_set(
-              COALESCE(meta::jsonb, '{}'::jsonb),
-              '{deliveryStatus}', '"${pushResult.success ? 'delivered' : 'failed'}"'::jsonb
-            ) || jsonb_set(
-              COALESCE(meta::jsonb, '{}'::jsonb),
-              '{deliveryAttempts}', '${pushResult.attempts}'::jsonb
-            ) || jsonb_set(
-              COALESCE(meta::jsonb, '{}'::jsonb),
-              '{lastDeliveryAttempt}', '"${new Date().toISOString()}"'::jsonb
-            ) || jsonb_set(
-              COALESCE(meta::jsonb, '{}'::jsonb),
-              '{failedTokens}', '${JSON.stringify(pushResult.failedTokens)}'::jsonb
-            )`,
-          })
-          .where('id = :id', { id: savedNotification.id })
-          .execute();
-
         this.logger.log(
-          `Notification ${savedNotification.id} - Status: ${pushResult.success ? 'delivered' : 'failed'}, Tokens: ${tokens.length}, Attempts: ${pushResult.attempts}`,
+          `Notification sent to user ${user.id} - Status: ${pushResult.success ? 'delivered' : 'failed'}, Tokens: ${tokens.length}, Attempts: ${pushResult.attempts}`,
         );
+
+        return {
+          success: pushResult.success,
+          failedTokens: pushResult.failedTokens,
+        };
       } else {
         this.logger.warn(`No valid push tokens found for user ${user.id}`);
-        await this.notificationRepo
-          .createQueryBuilder()
-          .update(Notification)
-          .set({
-            meta: () => `jsonb_set(
-              COALESCE(meta::jsonb, '{}'::jsonb),
-              '{deliveryStatus}', '"no_tokens"'::jsonb
-            ) || jsonb_set(
-              COALESCE(meta::jsonb, '{}'::jsonb),
-              '{lastDeliveryAttempt}', '"${new Date().toISOString()}"'::jsonb
-            )`,
-          })
-          .where('id = :id', { id: savedNotification.id })
-          .execute();
+        return { success: false, message: 'No valid push tokens' };
       }
-
-      return { success: true, notificationId: savedNotification.id };
     } catch (error) {
       this.logger.error(
-        `Failed to create and send notification for user ${user.id}`,
+        `Failed to send notification for user ${user.id}`,
         error,
       );
       return {
@@ -253,33 +173,5 @@ export class NotificationService {
       success: !hasFailures,
       failedTokens: failedTokens.length > 0 ? failedTokens : undefined,
     };
-  }
-
-  async getUserNotifications(userId: string) {
-    return this.notificationRepo.find({
-      where: { userId },
-      order: { createdAt: 'DESC' },
-    });
-  }
-
-  async markAsRead(id: string, userId: string) {
-    await this.notificationRepo.update({ id, userId }, { isRead: true });
-  }
-
-  private isRecent(date: Date, priority: string = 'medium'): boolean {
-    const now = Date.now();
-    const notificationTime = new Date(date).getTime();
-    const diff = now - notificationTime;
-
-    // Priority-based cooldowns
-    const cooldowns = {
-      high: 1000 * 60 * 60, // 1 hour
-      medium: 1000 * 60 * 60 * 6, // 6 hours
-      low: 1000 * 60 * 60 * 24, // 24 hours
-    };
-
-    const cooldown =
-      cooldowns[priority as keyof typeof cooldowns] || cooldowns.medium;
-    return diff < cooldown;
   }
 }

@@ -174,13 +174,17 @@ export class ServiceReminderService {
           ? odoDue
           : dateDue;
 
-    await this.sendServiceReminders(user, {
-      isDue,
-      daysLeft,
-      remainingKm,
-      odoDue,
-      dateDue,
-    });
+    await this.sendServiceReminders(
+      user,
+      {
+        isDue,
+        daysLeft,
+        remainingKm,
+        odoDue,
+        dateDue,
+      },
+      reminder.id,
+    );
 
     return {
       due: isDue,
@@ -225,11 +229,33 @@ export class ServiceReminderService {
       odoDue: boolean;
       dateDue: boolean;
     },
+    reminderId: string,
   ) {
     const { isDue, daysLeft, remainingKm, odoDue, dateDue } = reminderData;
 
-    // Overdue notifications with specific type information
+    // Get the reminder to check cooldowns
+    const reminder = await this.reminderRepo.findOne({
+      where: { id: reminderId },
+    });
+    if (!reminder) return;
+
+    // Determine notification priority
+    let priority = 'low';
+
+    // Overdue notifications
     if (isDue) {
+      priority = 'high';
+      if (
+        this.isInCooldown(
+          reminder.lastNotified,
+          reminder.lastNotificationPriority,
+          priority,
+        )
+      ) {
+        console.log('Skipping overdue notification - still in cooldown');
+        return;
+      }
+
       if (odoDue && dateDue) {
         console.log('Sending overdue service notification (both odo and date)');
         await this.notificationService.createAndSend(user, {
@@ -256,10 +282,21 @@ export class ServiceReminderService {
         });
       }
     }
-
     // Upcoming reminders with escalating urgency
-    if (daysLeft !== null && !isDue) {
+    else if (daysLeft !== null) {
       if (daysLeft <= 3) {
+        priority = 'high';
+        if (
+          this.isInCooldown(
+            reminder.lastNotified,
+            reminder.lastNotificationPriority,
+            priority,
+          )
+        ) {
+          console.log('Skipping urgent notification - still in cooldown');
+          return;
+        }
+
         console.log(
           'Sending urgent reminder notification, days left:',
           daysLeft,
@@ -271,6 +308,18 @@ export class ServiceReminderService {
           meta: { priority: 'high', type: 'urgent', daysLeft, odoDue, dateDue },
         });
       } else if (daysLeft <= 7) {
+        priority = 'medium';
+        if (
+          this.isInCooldown(
+            reminder.lastNotified,
+            reminder.lastNotificationPriority,
+            priority,
+          )
+        ) {
+          console.log('Skipping standard notification - still in cooldown');
+          return;
+        }
+
         console.log(
           'Sending standard reminder notification, days left:',
           daysLeft,
@@ -288,6 +337,18 @@ export class ServiceReminderService {
           },
         });
       } else if (daysLeft <= 14) {
+        priority = 'low';
+        if (
+          this.isInCooldown(
+            reminder.lastNotified,
+            reminder.lastNotificationPriority,
+            priority,
+          )
+        ) {
+          console.log('Skipping planning notification - still in cooldown');
+          return;
+        }
+
         console.log(
           'Sending early reminder notification, days left:',
           daysLeft,
@@ -306,10 +367,23 @@ export class ServiceReminderService {
         });
       }
     }
-
     // Odometer-based alerts
-    if (remainingKm !== null && !isDue) {
+    else if (remainingKm !== null) {
       if (remainingKm <= 100) {
+        priority = 'high';
+        if (
+          this.isInCooldown(
+            reminder.lastNotified,
+            reminder.lastNotificationPriority,
+            priority,
+          )
+        ) {
+          console.log(
+            'Skipping critical odometer notification - still in cooldown',
+          );
+          return;
+        }
+
         console.log(
           'Sending critical odometer reminder, remaining km:',
           remainingKm,
@@ -327,6 +401,18 @@ export class ServiceReminderService {
           },
         });
       } else if (remainingKm <= 500) {
+        priority = 'medium';
+        if (
+          this.isInCooldown(
+            reminder.lastNotified,
+            reminder.lastNotificationPriority,
+            priority,
+          )
+        ) {
+          console.log('Skipping odometer notification - still in cooldown');
+          return;
+        }
+
         console.log('Sending odometer reminder, remaining km:', remainingKm);
         await this.notificationService.createAndSend(user, {
           title: 'Service Planning 📊',
@@ -342,5 +428,46 @@ export class ServiceReminderService {
         });
       }
     }
+
+    // Update the reminder with last notification info
+    await this.reminderRepo.update(reminderId, {
+      lastNotified: new Date(),
+      lastNotificationPriority: priority,
+    });
+  }
+
+  /**
+   * Check if notification is still in cooldown period
+   */
+  private isInCooldown(
+    lastNotified: Date | undefined,
+    lastPriority: string | undefined,
+    currentPriority: string,
+  ): boolean {
+    if (!lastNotified) return false;
+
+    const now = Date.now();
+    const lastNotifiedTime = new Date(lastNotified).getTime();
+    const diff = now - lastNotifiedTime;
+
+    // Priority-based cooldowns
+    const cooldowns = {
+      high: 1000 * 60 * 60, // 1 hour
+      medium: 1000 * 60 * 60 * 6, // 6 hours
+      low: 1000 * 60 * 60 * 24, // 24 hours
+    };
+
+    // If current priority is higher than last, allow notification
+    const priorityLevels = { high: 3, medium: 2, low: 1 };
+    const currentLevel =
+      priorityLevels[currentPriority as keyof typeof priorityLevels];
+    const lastLevel =
+      priorityLevels[lastPriority as keyof typeof priorityLevels] || 0;
+
+    if (currentLevel > lastLevel) return false;
+
+    // Check cooldown for same or lower priority
+    const cooldown = cooldowns[currentPriority as keyof typeof cooldowns];
+    return diff < cooldown;
   }
 }
