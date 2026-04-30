@@ -273,6 +273,7 @@ export class ServiceReminderService {
           title: `${vehicleInfo} Service Overdue! 🚨`,
           body: `Your ${vehicleInfo.toLowerCase()} service is overdue by both mileage and time. Please schedule service immediately.`,
           type: NotificationTypeENUM.SERVICE_REMINDER,
+          vehicleId: reminder.vehicleId,
           meta: {
             priority: 'high',
             type: 'overdue_both',
@@ -287,6 +288,7 @@ export class ServiceReminderService {
           title: `${vehicleInfo} Service Overdue! 🚨`,
           body: `Your ${vehicleInfo.toLowerCase()} service is overdue by mileage. Please schedule service immediately.`,
           type: NotificationTypeENUM.SERVICE_REMINDER,
+          vehicleId: reminder.vehicleId,
           meta: {
             priority: 'high',
             type: 'overdue_odo',
@@ -301,6 +303,7 @@ export class ServiceReminderService {
           title: `${vehicleInfo} Service Overdue! 🚨`,
           body: `Your ${vehicleInfo.toLowerCase()} service is overdue by time. Please schedule service immediately.`,
           type: NotificationTypeENUM.SERVICE_REMINDER,
+          vehicleId: reminder.vehicleId,
           meta: {
             priority: 'high',
             type: 'overdue_date',
@@ -334,6 +337,7 @@ export class ServiceReminderService {
           title: `${vehicleInfo} Service Due Soon! ⚠️`,
           body: `Your ${vehicleInfo.toLowerCase()} is due for service in ${daysLeft} day${daysLeft === 1 ? '' : 's'}.`,
           type: NotificationTypeENUM.SERVICE_REMINDER,
+          vehicleId: reminder.vehicleId,
           meta: {
             priority: 'high',
             type: 'urgent',
@@ -364,6 +368,7 @@ export class ServiceReminderService {
           title: `${vehicleInfo} Service Reminder 🚨`,
           body: `Your ${vehicleInfo.toLowerCase()} is due for service in ${daysLeft} days.`,
           type: NotificationTypeENUM.SERVICE_REMINDER,
+          vehicleId: reminder.vehicleId,
           meta: {
             priority: 'medium',
             type: 'standard',
@@ -394,6 +399,7 @@ export class ServiceReminderService {
           title: `${vehicleInfo} Service Planning 📅`,
           body: `Your ${vehicleInfo.toLowerCase()} will be due for service in ${daysLeft} days.`,
           type: NotificationTypeENUM.SERVICE_REMINDER,
+          vehicleId: reminder.vehicleId,
           meta: {
             priority: 'low',
             type: 'planning',
@@ -430,6 +436,7 @@ export class ServiceReminderService {
           title: `${vehicleInfo} Service Due Soon! ⚠️`,
           body: `Your ${vehicleInfo.toLowerCase()} is due for service in ${remainingKm} km.`,
           type: NotificationTypeENUM.SERVICE_REMINDER,
+          vehicleId: reminder.vehicleId,
           meta: {
             priority: 'high',
             type: 'odo_urgent',
@@ -457,6 +464,7 @@ export class ServiceReminderService {
           title: `${vehicleInfo} Service Planning 📊`,
           body: `Your ${vehicleInfo.toLowerCase()} will be due for service in ${remainingKm} km.`,
           type: NotificationTypeENUM.SERVICE_REMINDER,
+          vehicleId: reminder.vehicleId,
           meta: {
             priority: 'medium',
             type: 'odo_standard',

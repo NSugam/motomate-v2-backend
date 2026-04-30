@@ -38,7 +38,15 @@ export class CreateNotificationDTO {
   type: NotificationTypeENUM;
 
   @ApiPropertyOptional({
-    example: { vehicleId: '123', nextOdo: 12000 },
+    example: '123',
+    description: 'Optional vehicle ID for targeted notifications',
+  })
+  @IsOptional()
+  @IsString()
+  vehicleId?: string;
+
+  @ApiPropertyOptional({
+    example: { priority: 'high', type: 'overdue', vehicleInfo: 'Honda Civic' },
     description: 'Optional metadata for notification context',
   })
   @IsOptional()

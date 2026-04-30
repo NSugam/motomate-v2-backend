@@ -13,15 +13,15 @@ export class NotificationService {
 
   async createAndSend(user: LoggedInUser, data: CreateNotificationDTO) {
     try {
-      // Validate vehicle ID
-      const vehicleId = user.defaultVehicleId;
-      if (!vehicleId) {
+      // Use provided vehicleId or fall back to default
+      const targetVehicleId = data.vehicleId || user.defaultVehicleId;
+      if (!targetVehicleId) {
         this.logger.warn(
-          `User ${user.id} has no default vehicle, skipping notification`,
+          `User ${user.id} has no target vehicle, skipping notification`,
         );
         return {
           success: false,
-          message: 'No default vehicle assigned',
+          message: 'No target vehicle assigned',
         };
       }
 
