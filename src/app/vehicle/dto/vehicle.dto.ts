@@ -10,6 +10,11 @@ export class CreateVehicleDTO {
   @IsString()
   model: string;
 
+  @ApiPropertyOptional({ example: 'BA-1-CHA-1234' })
+  @IsOptional()
+  @IsString()
+  licensePlate?: string;
+
   @ApiProperty({ example: '1' })
   @IsString()
   masterDataId: string;

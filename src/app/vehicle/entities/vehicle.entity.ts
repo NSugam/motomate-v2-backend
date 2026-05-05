@@ -48,6 +48,9 @@ export class Vehicle {
   @Column({ type: 'text' })
   model: string;
 
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  licensePlate?: string;
+
   @Column({ type: 'float' })
   cc: number;
 

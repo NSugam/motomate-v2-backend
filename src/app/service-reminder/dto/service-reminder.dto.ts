@@ -5,6 +5,7 @@ import {
   IsDefined,
   IsEnum,
   IsInt,
+  IsOptional,
   ValidateIf,
 } from 'class-validator';
 import { ReminderTypeENUM } from './reminder.types';
@@ -40,6 +41,7 @@ export class CreateServiceReminderDTO {
     example: false,
     description: 'Disable notifications for this reminder',
   })
+  @IsOptional()
   @IsBoolean()
   isDisabled?: boolean;
 }
