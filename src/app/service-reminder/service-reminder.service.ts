@@ -72,6 +72,11 @@ export class ServiceReminderService {
       data.odoInterval = null;
     }
 
+    // Handle disabled status
+    if (payload.isDisabled !== undefined) {
+      data.isDisabled = payload.isDisabled;
+    }
+
     const saved = await this.reminderRepo.save(data);
 
     await this.getDueReminder(user, {
@@ -236,11 +241,18 @@ export class ServiceReminderService {
   ) {
     const { isDue, daysLeft, remainingKm, odoDue, dateDue } = reminderData;
 
-    // Get the reminder to check cooldowns
+    // Get the reminder to check cooldowns and disabled status
     const reminder = await this.reminderRepo.findOne({
       where: { id: reminderId },
     });
-    if (!reminder) return;
+    if (!reminder || reminder.isDisabled) {
+      if (reminder?.isDisabled) {
+        console.log(
+          `Skipping notification - reminder ${reminderId} is disabled by user`,
+        );
+      }
+      return;
+    }
 
     // Get vehicle details for notification context
     const vehicle = await this.vehicleRepo.findOne({

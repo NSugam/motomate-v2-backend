@@ -30,4 +30,7 @@ export class ServiceReminder {
 
   @Column({ type: 'varchar', length: 20, nullable: true })
   lastNotificationPriority?: string;
+
+  @Column({ type: 'boolean', default: false })
+  isDisabled: boolean = false;
 }

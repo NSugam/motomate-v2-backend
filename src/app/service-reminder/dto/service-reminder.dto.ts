@@ -1,6 +1,12 @@
 // parts-reminder.dto.ts
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { IsDefined, IsEnum, IsInt, ValidateIf } from 'class-validator';
+import {
+  IsBoolean,
+  IsDefined,
+  IsEnum,
+  IsInt,
+  ValidateIf,
+} from 'class-validator';
 import { ReminderTypeENUM } from './reminder.types';
 
 export class CreateServiceReminderDTO {
@@ -29,6 +35,13 @@ export class CreateServiceReminderDTO {
   })
   @IsInt()
   dateInterval?: number;
+
+  @ApiPropertyOptional({
+    example: false,
+    description: 'Disable notifications for this reminder',
+  })
+  @IsBoolean()
+  isDisabled?: boolean;
 }
 
 export class UpdateServiceReminderDTO extends PartialType(

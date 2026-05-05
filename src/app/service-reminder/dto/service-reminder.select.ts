@@ -1,7 +1,11 @@
-export const serviceReminderSelectFields = {
+export const ServiceReminderSelect = {
   id: true,
-  createdAt: true,
+  userId: true,
+  vehicleId: true,
   type: true,
   odoInterval: true,
   dateInterval: true,
+  lastNotified: true,
+  lastNotificationPriority: true,
+  isDisabled: true,
 };
