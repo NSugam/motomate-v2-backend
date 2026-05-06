@@ -17,6 +17,7 @@ export interface LoggedInUser {
   username: string;
   email: string;
   verified: boolean;
+  phoneVerified: boolean;
   role?: UserRoleENUM;
   vehicles?: Vehicle[];
 }

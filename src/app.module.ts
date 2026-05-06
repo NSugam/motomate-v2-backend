@@ -14,6 +14,7 @@ import { join } from 'path';
 import { AuthModule } from './app/auth/auth.module';
 import { FillupsModule } from './app/fillups/fillups.module';
 import { NotificationModule } from './app/notification/notification.module';
+import { OTPModule } from './app/otp/otp.module';
 import { PartModule } from './app/part/part.module';
 import { PartsChangedModule } from './app/parts-changed/parts-changed.module';
 import { PartsReminderModule } from './app/parts-reminder/parts-reminder.module';
@@ -49,7 +50,7 @@ import { VersionControlModule } from './version-control/version-control.module';
       throttlers: [
         {
           ttl: 60000, // expressed in micro secounds (default: 10 hits in 1 min)
-          limit: 1000,
+          limit: 10,
         },
       ],
     }),
@@ -57,6 +58,7 @@ import { VersionControlModule } from './version-control/version-control.module';
 
     HealthModule,
     AuthModule,
+    OTPModule,
     RoleModule,
     RouteModule,
     PermissionModule,
@@ -96,6 +98,8 @@ export class AppModule implements NestModule {
         { path: 'health-check', method: RequestMethod.GET },
         { path: 'auth/login', method: RequestMethod.POST },
         { path: 'auth/register', method: RequestMethod.POST },
+        { path: 'otp/generate', method: RequestMethod.POST },
+        { path: 'otp/verify', method: RequestMethod.POST },
         { path: 'master-data/model/*', method: RequestMethod.GET },
         { path: 'master-data/import-bikes', method: RequestMethod.GET },
       )

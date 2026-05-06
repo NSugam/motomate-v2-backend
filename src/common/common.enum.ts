@@ -4,3 +4,9 @@ export enum MediaTypeEnum {
   DOCUMENT = 'document',
   PDF = 'pdf',
 }
+
+export enum otpTypeENUM {
+  PHONE = 'phone',
+  EMAIL = 'email',
+  PASSWORD_RESET = 'password_reset',
+}

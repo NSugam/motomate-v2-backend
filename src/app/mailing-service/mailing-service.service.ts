@@ -7,13 +7,14 @@ import { sendMail } from 'src/helper/sendMail';
 import { sendMailDto } from './dto/sendMail.dto';
 
 @Injectable()
-export class MailingServiceService {
+export class MailingService {
   async sendMail(sendMailDto: sendMailDto) {
     try {
       await sendMail({
         email: sendMailDto.email,
         subject: sendMailDto.subject,
-        message: sendMailDto.message,
+        text: sendMailDto.message,
+        html: sendMailDto.message,
       });
 
       return {

@@ -1,11 +1,14 @@
 import * as nodemailer from 'nodemailer';
 import { env } from 'src/config/env';
 
-export const sendMail = async (options: {
+interface MailOptions {
   email: string;
   subject: string;
-  message: string;
-}) => {
+  text?: string;
+  html?: string;
+}
+
+export const sendMail = async (options: MailOptions) => {
   try {
     const transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
@@ -21,10 +24,11 @@ export const sendMail = async (options: {
     });
 
     const mailOptions = {
-      from: process.env.MAIL_USERNAME,
+      from: `Motomate App <${env.MAIL_USERNAME}>`,
       to: options.email,
       subject: options.subject,
-      text: options.message,
+      text: options.text,
+      html: options.html,
     };
 
     await transporter.sendMail(mailOptions);

@@ -38,11 +38,14 @@ export class User {
   @Column({ type: 'text', unique: true })
   email: string;
 
+  @Column({ type: 'text', nullable: true, unique: true })
+  phone: string;
+
   @Column({ type: 'boolean', default: true })
   verified: boolean;
 
-  @Column({ type: 'text', nullable: true, unique: true })
-  phone: string;
+  @Column({ type: 'boolean', default: false })
+  phoneVerified: boolean;
 
   @Column({ type: 'text' })
   password: string;

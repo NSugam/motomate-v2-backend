@@ -4,7 +4,7 @@ import { IsEmail, IsString } from 'class-validator';
 export class sendMailDto {
   @ApiProperty({
     description: 'Receiver email address',
-    example: 'nsugam248@gmail.com',
+    example: 'contact@neupanesugam.com.np',
   })
   @IsEmail()
   email: string;
