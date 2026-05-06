@@ -7,8 +7,8 @@ import { Repository } from 'typeorm';
 import { NotificationTypeENUM } from '../notification/dto/create-notification.dto';
 import { NotificationService } from '../notification/notification.service';
 import { Servicing } from '../servicing/entities/servicing.entity';
-import { Vehicle } from '../vehicle/entities/vehicle.entity';
 import { LoggedInUser } from '../user/user.type';
+import { Vehicle } from '../vehicle/entities/vehicle.entity';
 import { ReminderTypeENUM } from './dto/reminder.types';
 import { CreateServiceReminderDTO } from './dto/service-reminder.dto';
 import { ServiceReminder } from './entities/service-reminder.entity';
@@ -34,6 +34,7 @@ export class ServiceReminderService {
     });
 
     let data = existing;
+    let settingsChanged = false;
 
     if (!data) {
       data = this.reminderRepo.create({
@@ -43,38 +44,72 @@ export class ServiceReminderService {
     }
 
     // Update type first
-    if (payload.type) {
+    if (payload.type && payload.type !== data.type) {
       data.type = payload.type;
+      settingsChanged = true;
     }
 
     const finalType = payload.type ?? data.type;
 
     if (finalType === ReminderTypeENUM.BOTH) {
-      if (payload.odoInterval !== undefined) {
+      if (
+        payload.odoInterval !== undefined &&
+        payload.odoInterval !== data.odoInterval
+      ) {
         data.odoInterval = payload.odoInterval;
+        settingsChanged = true;
       }
-      if (payload.dateInterval !== undefined) {
+      if (
+        payload.dateInterval !== undefined &&
+        payload.dateInterval !== data.dateInterval
+      ) {
         data.dateInterval = payload.dateInterval;
+        settingsChanged = true;
       }
     }
 
     if (finalType === ReminderTypeENUM.ODO) {
-      if (payload.odoInterval !== undefined) {
+      if (
+        payload.odoInterval !== undefined &&
+        payload.odoInterval !== data.odoInterval
+      ) {
         data.odoInterval = payload.odoInterval;
+        settingsChanged = true;
       }
-      data.dateInterval = null;
+      if (data.dateInterval !== null) {
+        data.dateInterval = null;
+        settingsChanged = true;
+      }
     }
 
     if (finalType === ReminderTypeENUM.DATE) {
-      if (payload.dateInterval !== undefined) {
+      if (
+        payload.dateInterval !== undefined &&
+        payload.dateInterval !== data.dateInterval
+      ) {
         data.dateInterval = payload.dateInterval;
+        settingsChanged = true;
       }
-      data.odoInterval = null;
+      if (data.odoInterval !== null) {
+        data.odoInterval = null;
+        settingsChanged = true;
+      }
     }
 
     // Handle disabled status
-    if (payload.isDisabled !== undefined) {
+    if (
+      payload.isDisabled !== undefined &&
+      payload.isDisabled !== data.isDisabled
+    ) {
       data.isDisabled = payload.isDisabled;
+      settingsChanged = true;
+    }
+
+    // Reset notification tracking if any settings changed
+    if (settingsChanged) {
+      data.lastNotified = null;
+      data.lastNotificationPriority = null;
+      data.settingsUpdatedAt = new Date();
     }
 
     const saved = await this.reminderRepo.save(data);
@@ -251,6 +286,19 @@ export class ServiceReminderService {
           `Skipping notification - reminder ${reminderId} is disabled by user`,
         );
       }
+      return;
+    }
+
+    // Don't send notifications within 1 hour of settings change
+    const SETTINGS_GRACE_PERIOD = 1000 * 60 * 60; // 1 hour
+    if (
+      reminder.settingsUpdatedAt &&
+      Date.now() - new Date(reminder.settingsUpdatedAt).getTime() <
+        SETTINGS_GRACE_PERIOD
+    ) {
+      console.log(
+        `Skipping notification - reminder settings were recently updated, in grace period`,
+      );
       return;
     }
 
@@ -495,9 +543,24 @@ export class ServiceReminderService {
     });
   }
 
-  /**
-   * Check if notification is still in cooldown period
-   */
+  async toggleIsDisabled(user: LoggedInUser) {
+    const reminder = await this.reminderRepo.findOneOrFail({
+      where: {
+        userId: user.id,
+        vehicleId: user.defaultVehicleId,
+      },
+    });
+
+    reminder.isDisabled = !reminder.isDisabled;
+    const updated = await this.reminderRepo.save(reminder);
+
+    return {
+      message: `Service Reminder: ${updated.isDisabled ? 'disabled' : 'enabled'}`,
+      id: updated.id,
+      isDisabled: updated.isDisabled,
+    };
+  }
+
   private isInCooldown(
     lastNotified: Date | undefined,
     lastPriority: string | undefined,

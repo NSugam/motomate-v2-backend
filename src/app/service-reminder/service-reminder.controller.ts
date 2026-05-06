@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post } from '@nestjs/common';
 
 import { UserFilterType } from 'src/common/common.type';
 import { GetUser, UserFilter } from 'src/decorators/get-user.decorator';
@@ -34,5 +34,10 @@ export class ServiceReminderController {
     @GetUser() user: LoggedInUser,
   ) {
     return this.reminderService.create(body, user);
+  }
+
+  @Patch('toggle-reminder')
+  toggleIsDisabled(@GetUser() user: LoggedInUser) {
+    return this.reminderService.toggleIsDisabled(user);
   }
 }

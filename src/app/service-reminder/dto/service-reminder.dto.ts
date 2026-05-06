@@ -1,4 +1,3 @@
-// parts-reminder.dto.ts
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import {
   IsBoolean,
@@ -37,6 +36,15 @@ export class CreateServiceReminderDTO {
   @IsInt()
   dateInterval?: number;
 
+  @ApiPropertyOptional({
+    example: false,
+    description: 'Disable notifications for this reminder',
+  })
+  @IsOptional()
+  @IsBoolean()
+  isDisabled?: boolean;
+}
+export class ToggleServiceReminderDTO {
   @ApiPropertyOptional({
     example: false,
     description: 'Disable notifications for this reminder',

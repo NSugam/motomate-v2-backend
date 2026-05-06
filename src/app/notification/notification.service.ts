@@ -13,7 +13,6 @@ export class NotificationService {
 
   async createAndSend(user: LoggedInUser, data: CreateNotificationDTO) {
     try {
-      // Use provided vehicleId or fall back to default
       const targetVehicleId = data.vehicleId || user.defaultVehicleId;
       if (!targetVehicleId) {
         this.logger.warn(
@@ -25,7 +24,6 @@ export class NotificationService {
         };
       }
 
-      // Get valid push tokens
       const tokens = (user.devices ?? [])
         .map((d) => d.expoToken)
         .filter(Boolean)
