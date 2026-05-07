@@ -26,7 +26,7 @@ export class AuthService {
 
   cookieOptions = {
     httpOnly: true,
-    secure: false, // true for swagger and production, false for react-native(local)
+    secure: env.isProd ? true : false, // true for swagger and production, false for react-native(local)
     sameSite: 'none' as const,
     path: '/',
   };
