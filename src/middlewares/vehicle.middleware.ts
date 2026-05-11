@@ -12,6 +12,7 @@ import { UserRoleENUM } from '../app/user/user.type';
 export class VehicleMiddleware implements NestMiddleware {
   private publicPaths: string[] = [
     'user/me:get',
+    'auth/logout:post',
     'vehicle:post',
     'master-data/makes:get',
     'master-data/models:get',

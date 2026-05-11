@@ -37,6 +37,7 @@ export const vehicleSelectWithRelation = {
   nepaliDate: true,
   englishDate: true,
   masterData: {
+    id: true,
     engine: true,
     displacement: true,
     power: true,

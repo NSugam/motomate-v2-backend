@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { MasterData } from 'src/master-data/entities/md_bikes.entity';
 import { Fillups } from '../fillups/entities/fillup.entity';
 import { ServiceReminder } from '../service-reminder/entities/service-reminder.entity';
 import { UploadModule } from '../upload/upload.module';
@@ -10,7 +11,13 @@ import { VehicleService } from './vehicle.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Vehicle, User, ServiceReminder, Fillups]),
+    TypeOrmModule.forFeature([
+      Vehicle,
+      User,
+      ServiceReminder,
+      Fillups,
+      MasterData,
+    ]),
     UploadModule,
   ],
   controllers: [VehicleController],

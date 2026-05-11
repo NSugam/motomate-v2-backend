@@ -20,6 +20,7 @@ import { User } from '../user/entities/user.entity';
 import { LoggedInUser } from '../user/user.type';
 import { CreateVehicleDTO, UpdateVehicleDTO } from './dto/vehicle.dto';
 import { Vehicle } from './entities/vehicle.entity';
+import { MasterData } from 'src/master-data/entities/md_bikes.entity';
 @Injectable()
 export class VehicleService {
   constructor(
@@ -29,6 +30,8 @@ export class VehicleService {
     private readonly userRepo: Repository<User>,
     @InjectRepository(Fillups)
     private readonly fillupsRepo: Repository<Fillups>,
+    @InjectRepository(MasterData)
+    private readonly masterDataRepo: Repository<MasterData>,
     @InjectRepository(ServiceReminder)
     private readonly serviceReminderEntity: Repository<ServiceReminder>,
     private readonly uploadService: UploadService,
@@ -119,8 +122,26 @@ export class VehicleService {
       { id: vehicleId, user: { id: userId } },
       [],
     );
-    const updatePayload = this.vehicleRepo.merge(data, payload);
-    await this.vehicleRepo.update(vehicleId, updatePayload);
+
+    let masterData = data.masterData;
+
+    if (payload.masterDataId) {
+      masterData = await this.masterDataRepo.findOne({
+        where: { id: payload.masterDataId },
+      });
+
+      if (!masterData) {
+        throw new NotFoundException('Master Data Not Found');
+      }
+    }
+
+    const updatePayload = this.vehicleRepo.merge(data, {
+      ...payload,
+      masterData,
+    });
+
+    await this.vehicleRepo.save(updatePayload);
+
     return { message: 'Vehicle Updated Successfully' };
   }
 

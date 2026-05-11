@@ -50,7 +50,7 @@ import { VersionControlModule } from './version-control/version-control.module';
       throttlers: [
         {
           ttl: 60000, // expressed in micro secounds (default: 10 hits in 1 min)
-          limit: 10,
+          limit: 1000,
         },
       ],
     }),
