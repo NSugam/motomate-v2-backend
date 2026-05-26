@@ -38,8 +38,8 @@ export class VehicleService {
   ) {}
 
   async create(payload: CreateVehicleDTO, user: LoggedInUser) {
-    if (user.vehicles.length >= 3)
-      throw new BadRequestException('You can only add 3 vehicles.');
+    if (user.vehicles.length >= 2)
+      throw new BadRequestException('You can only add 2 vehicles.');
 
     const data = this.vehicleRepo.create({
       ...payload,

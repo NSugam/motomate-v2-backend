@@ -9,6 +9,8 @@ export const env = {
   JWT_EXPIRE: process.env.JWT_EXPIRE || '1d',
   JWT_SECRET: process.env.JWT_SECRET,
 
+  MASTER_EMAILS: process.env.MASTER_EMAILS?.split(',') || [],
+
   DB_HOST: process.env.DB_HOST || 'localhost',
   DB_PORT: Number(process.env.DB_PORT || 5432),
   DB_USERNAME: process.env.DB_USERNAME || 'postgres',

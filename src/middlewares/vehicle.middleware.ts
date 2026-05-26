@@ -7,6 +7,7 @@ import {
 import { NextFunction, Response } from 'express';
 import { RequestWithUser } from 'src/config/CustomRequest';
 import { UserRoleENUM } from '../app/user/user.type';
+import { env } from 'src/config/env';
 
 @Injectable()
 export class VehicleMiddleware implements NestMiddleware {
@@ -41,8 +42,8 @@ export class VehicleMiddleware implements NestMiddleware {
         'BadRequest: Please select a default vehicle',
       );
 
-    if (user.vehicles.length > 3) {
-      throw new UnauthorizedException('Trial: You can only have 3 vehicles');
+    if (user.vehicles.length >= 2 && !env.MASTER_EMAILS.includes(user.email)) {
+      throw new UnauthorizedException('Trial: You can only have 2 vehicles');
     }
 
     next();
