@@ -60,7 +60,13 @@ export class Vehicle {
   @Column({ type: 'text' })
   year: string;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
+  @Column({
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    default: 0,
+    nullable: true,
+  })
   afe: number;
 
   @Column({ type: 'date', nullable: true })

@@ -33,10 +33,16 @@ export class AuthService {
 
   async createUser(payload: CreateUserDto) {
     const existingUser = await this.userEntity.findOne({
-      where: { email: payload.email },
+      where: [{ username: payload.username }, { email: payload.email }],
     });
-    if (existingUser)
-      throw new ConflictException('Username or Email already exists');
+
+    if (existingUser) {
+      throw new ConflictException(
+        existingUser.username === payload.username
+          ? 'Username already exists'
+          : 'Email address already exists',
+      );
+    }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(payload.password, salt);
