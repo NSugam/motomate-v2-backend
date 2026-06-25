@@ -12,6 +12,7 @@ import {
   FindOrFailFn,
 } from 'src/common/orm.type';
 import { generateTakeSkip } from 'src/helper/utils';
+import { MasterData } from 'src/master-data/entities/md_bikes.entity';
 import { Repository } from 'typeorm';
 import { Fillups } from '../fillups/entities/fillup.entity';
 import { ServiceReminder } from '../service-reminder/entities/service-reminder.entity';
@@ -20,7 +21,6 @@ import { User } from '../user/entities/user.entity';
 import { LoggedInUser } from '../user/user.type';
 import { CreateVehicleDTO, UpdateVehicleDTO } from './dto/vehicle.dto';
 import { Vehicle } from './entities/vehicle.entity';
-import { MasterData } from 'src/master-data/entities/md_bikes.entity';
 @Injectable()
 export class VehicleService {
   constructor(
@@ -133,6 +133,15 @@ export class VehicleService {
       if (!masterData) {
         throw new NotFoundException('Master Data Not Found');
       }
+    }
+
+    if (payload.soldEnglishDate) {
+      const serviceReminder = await this.serviceReminderEntity.findOneBy({
+        vehicleId,
+      });
+      if (!serviceReminder) return;
+      serviceReminder.isDisabled = true;
+      await this.serviceReminderEntity.save(serviceReminder);
     }
 
     const updatePayload = this.vehicleRepo.merge(data, {

@@ -550,12 +550,16 @@ export class ServiceReminderService {
         vehicleId: user.defaultVehicleId,
       },
     });
-
+    if (user.defaultVehicle.soldEnglishDate)
+      return {
+        message: `You have already sold this bike.`,
+        isDisabled: reminder.isDisabled,
+      };
     reminder.isDisabled = !reminder.isDisabled;
     const updated = await this.reminderRepo.save(reminder);
 
     return {
-      message: `Service Reminder: ${updated.isDisabled ? 'disabled' : 'enabled'}`,
+      message: `Mobile Notification: ${updated.isDisabled ? 'Disabled!' : 'Enabled!'}`,
       id: updated.id,
       isDisabled: updated.isDisabled,
     };
