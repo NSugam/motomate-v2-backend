@@ -88,11 +88,10 @@ export class AuthService {
       hour12: true,
       timeZone: 'Asia/Kathmandu',
     });
+    userData.password = undefined;
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...userWithoutPassword } = userData;
     return {
-      loggedInUser: userWithoutPassword,
+      loggedInUser: userData,
       expiryTime: formattedExpiryTime,
     };
   }

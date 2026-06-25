@@ -71,9 +71,13 @@ export class Vehicle {
 
   @Column({ type: 'date', nullable: true })
   englishDate: string;
-
   @Column({ nullable: true })
   nepaliDate: string;
+
+  @Column({ type: 'date', nullable: true })
+  soldEnglishDate: string;
+  @Column({ nullable: true })
+  soldNepaliDate: string;
 
   @BeforeInsert()
   @BeforeUpdate()
@@ -81,5 +85,9 @@ export class Vehicle {
     if (!this.englishDate) return;
     const nepali = new NepaliDate(new Date(this.englishDate));
     this.nepaliDate = nepali.format('YYYY MMMM DD', 'np');
+
+    if (!this.soldEnglishDate) return;
+    const soldNepali = new NepaliDate(new Date(this.soldEnglishDate));
+    this.soldNepaliDate = soldNepali.format('YYYY MMMM DD', 'np');
   }
 }

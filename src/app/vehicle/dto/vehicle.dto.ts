@@ -39,6 +39,11 @@ export class CreateVehicleDTO {
   @ApiProperty({ example: '2025-07-11' })
   @IsString()
   englishDate: string;
+
+  @ApiPropertyOptional({ example: '2027-12-10' })
+  @IsString()
+  @IsOptional()
+  soldEnglishDate: string;
 }
 
 export class UpdateVehicleDTO extends PartialType(CreateVehicleDTO) {}

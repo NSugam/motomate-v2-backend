@@ -17,6 +17,8 @@ export const vehicleSelectFields = {
   afe: true,
   nepaliDate: true,
   englishDate: true,
+  soldEnglishDate: true,
+  soldNepaliDate: true,
   vehicleImage: {
     id: true,
     url: true,
@@ -36,6 +38,8 @@ export const vehicleSelectWithRelation = {
   afe: true,
   nepaliDate: true,
   englishDate: true,
+  soldEnglishDate: true,
+  soldNepaliDate: true,
   masterData: {
     id: true,
     engine: true,
