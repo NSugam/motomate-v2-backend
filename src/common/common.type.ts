@@ -9,3 +9,10 @@ export type UserFilterType = {
   vehicleId: string;
   currentOdo?: number;
 };
+
+export type DeviceInfoType = {
+  browser: UAParser.IBrowser;
+  os: UAParser.IOS;
+  device: UAParser.IDevice;
+  ip: string;
+};

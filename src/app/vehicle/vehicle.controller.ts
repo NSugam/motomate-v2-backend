@@ -34,7 +34,13 @@ export class VehicleController {
   @Patch('image')
   @ApiConsumes('multipart/form-data')
   @ApiBody({ type: UploadImageDto })
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB
+      },
+    }),
+  )
   updateImage(
     @UploadedFile() file: Express.Multer.File,
     @GetUser() user: LoggedInUser,

@@ -1,6 +1,12 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { v2 as cloudinaryType, UploadApiResponse } from 'cloudinary';
+import sharp from 'sharp';
 import { FindAndCountFn } from 'src/common/orm.type';
 import { generateTakeSkip } from 'src/helper/utils';
 import { Repository } from 'typeorm';
@@ -37,25 +43,38 @@ export class UploadService {
   };
 
   async uploadImage(file: Express.Multer.File): Promise<UploadApiResponse> {
+    if (!file?.buffer) {
+      throw new BadRequestException('Invalid file');
+    }
+
+    const optimizedBuffer = await sharp(file.buffer)
+      .rotate()
+      .resize({
+        width: 1600,
+        fit: 'inside',
+        withoutEnlargement: true,
+      })
+      .jpeg({
+        quality: 80,
+        mozjpeg: true,
+      })
+      .toBuffer();
+
     return new Promise((resolve, reject) => {
       const uploadStream = this.cloudinary.uploader.upload_stream(
         { folder: 'uploads' },
         (error, result) => {
-          if (error) {
+          if (error || !result) {
             return reject(
-              new Error(error.message || 'Cloudinary upload failed'),
+              new Error(error?.message || 'Cloudinary upload failed'),
             );
-          }
-
-          if (!result) {
-            return reject(new Error('No result from Cloudinary'));
           }
 
           resolve(result);
         },
       );
 
-      uploadStream.end(file.buffer);
+      uploadStream.end(optimizedBuffer);
     });
   }
 
