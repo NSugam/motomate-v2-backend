@@ -46,7 +46,7 @@ export class PartsChangedController {
       partsChangedSelectFields,
       pagination,
       {
-        createdAt: 'DESC',
+        englishDate: 'DESC',
       },
       partsChangedRelations,
     );

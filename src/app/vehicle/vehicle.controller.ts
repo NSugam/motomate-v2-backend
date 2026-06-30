@@ -82,7 +82,7 @@ export class VehicleController {
       vehicleSelectWithRelation,
       pagination,
       {
-        createdAt: 'DESC',
+        year: 'DESC',
       },
       vehicleRelations,
     );

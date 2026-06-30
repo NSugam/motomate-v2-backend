@@ -21,6 +21,7 @@ import { User } from '../user/entities/user.entity';
 import { LoggedInUser } from '../user/user.type';
 import { CreateVehicleDTO, UpdateVehicleDTO } from './dto/vehicle.dto';
 import { Vehicle } from './entities/vehicle.entity';
+import { env } from 'src/config/env';
 @Injectable()
 export class VehicleService {
   constructor(
@@ -38,7 +39,7 @@ export class VehicleService {
   ) {}
 
   async create(payload: CreateVehicleDTO, user: LoggedInUser) {
-    if (user.vehicles.length >= 2)
+    if (user.vehicles.length >= 2 && !env.MASTER_EMAILS.includes(user.email))
       throw new BadRequestException('You can only add 2 vehicles.');
 
     const data = this.vehicleRepo.create({
