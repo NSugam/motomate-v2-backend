@@ -25,6 +25,7 @@ import {
   UpdatePartsChangedDTO,
 } from './dto/parts-changed.dto';
 import { PartsChanged } from './entities/parts-changed.entity';
+import { ReminderTypeENUM } from '../service-reminder/dto/reminder.types';
 
 type PartsChangedTotals = {
   totalPartsCost: number;
@@ -154,10 +155,15 @@ export class PartsChangedService {
       .createQueryBuilder('pc')
       .select('DISTINCT ON (pc.partId) pc.id', 'id')
       .where('pc.userId = :userId', { userId })
-      .andWhere('pc.vehicleId = :vehicleId', { vehicleId })
-      .andWhere('pc.fromServicing = :fromServicing', {
-        fromServicing: fromServicing ?? true,
-      })
+      .andWhere('pc.vehicleId = :vehicleId', { vehicleId });
+
+    if (fromServicing !== undefined) {
+      subQuery.andWhere('pc.fromServicing = :fromServicing', {
+        fromServicing,
+      });
+    }
+
+    subQuery
       .orderBy('pc.partId', 'ASC')
       .addOrderBy('pc.odoReading', 'DESC')
       .addOrderBy('pc.id', 'DESC');
@@ -197,9 +203,8 @@ export class PartsChangedService {
       'servicing.englishDate',
       'servicing.nepaliDate',
       'servicing.odoReading',
-    ])
-      .orderBy('pc.odoReading', 'DESC')
-      .addOrderBy('pc.id', 'DESC');
+    ]).orderBy('servicing.odoReading', 'DESC');
+    // .addOrderBy('pc.id', 'DESC');
 
     const data = await qb.getMany();
     return [data, data.length];
@@ -213,7 +218,7 @@ export class PartsChangedService {
     const [data] = await this.getLatestServicingParts(
       userId,
       vehicleId,
-      false,
+      undefined,
       true,
     );
 
@@ -233,7 +238,10 @@ export class PartsChangedService {
 
         // ODO logic
         if (reminder.odoInterval) {
-          nextOdo = Number(item.odoReading) + Number(reminder.odoInterval);
+          console.log(item.cost, item?.servicing?.odoReading);
+          nextOdo =
+            Number(item?.servicing?.odoReading || item.odoReading) +
+            Number(reminder.odoInterval);
 
           if (currentOdo >= nextOdo) {
             isDue = true;
@@ -244,7 +252,9 @@ export class PartsChangedService {
 
         // DATE logic
         if (reminder.dateInterval) {
-          const baseDate = new Date(item.englishDate);
+          const baseDate = new Date(
+            item?.servicing?.englishDate || item.englishDate,
+          );
           const dueDateObj = new Date(baseDate);
           dueDateObj.setDate(baseDate.getDate() + reminder.dateInterval);
 
@@ -269,25 +279,28 @@ export class PartsChangedService {
 
         const type =
           reminder.odoInterval && reminder.dateInterval
-            ? 'any'
+            ? 'ANY'
             : reminder.odoInterval
-              ? 'odo'
-              : 'englishDate';
+              ? 'ODO'
+              : 'DATE';
 
         if (!isDue && !isUpcoming) return null;
 
         return {
           type,
+          currentOdo: Number(currentOdo),
           partName: item.part?.name,
           lastReplaced: {
-            odoReading: item.odoReading,
-            englishDate: item.englishDate,
-            nepaliDate: item.nepaliDate,
+            odoReading: item.servicing?.odoReading || item.odoReading,
+            englishDate: item?.servicing?.englishDate || item.englishDate,
+            nepaliDate: item?.servicing?.nepaliDate || item.nepaliDate,
           },
-          currentOdo: Number(currentOdo),
           nextOdo,
           nextDate,
-          dueOdo: isDue ? currentOdo - nextOdo : null,
+          dueOdo:
+            isDue && type === ReminderTypeENUM.ODO
+              ? currentOdo - nextOdo
+              : null,
           isDue,
           isUpcoming,
         };

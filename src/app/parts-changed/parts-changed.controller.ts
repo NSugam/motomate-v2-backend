@@ -46,14 +46,14 @@ export class PartsChangedController {
       partsChangedSelectFields,
       pagination,
       {
-        englishDate: 'DESC',
+        odoReading: 'DESC',
       },
       partsChangedRelations,
     );
   }
 
   @Get('last-serviced')
-  @ApiOperation({ summary: 'Find Last Parts Changed from Servicing' })
+  @ApiOperation({ summary: 'Find Last Parts Changed' })
   getLatestPartsChanged(
     @Query()
     { fromServicing, checkReminder }: PartsChangedFilterDTO,
