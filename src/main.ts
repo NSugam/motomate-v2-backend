@@ -36,20 +36,22 @@ async function bootstrap() {
   // app.useGlobalFilters(new GlobalExceptionFilter());
   app.useGlobalInterceptors(new SuccessResponseInterceptor());
 
-  const config = new DocumentBuilder()
-    .setTitle('Motomate-v2.0 APIs')
-    .setDescription('API Documentation for  Motomate-v2.0.')
-    .setExternalDoc('Postman Collection', '/docs-json')
-    .setVersion('v2.0')
-    .addCookieAuth('_xf_')
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
+  if (!env.isProd) {
+    const config = new DocumentBuilder()
+      .setTitle('Motomate-v2.0 APIs')
+      .setDescription('API Documentation for  Motomate-v2.0.')
+      .setExternalDoc('Postman Collection', '/docs-json')
+      .setVersion('v2.0')
+      .addCookieAuth('_xf_')
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
 
-  SwaggerModule.setup('/docs', app, document, {
-    swaggerOptions: {
-      persistAuthorization: true,
-    },
-  });
+    SwaggerModule.setup('/docs', app, document, {
+      swaggerOptions: {
+        persistAuthorization: true,
+      },
+    });
+  }
 
   await app.listen(PORT ?? 9095);
 }

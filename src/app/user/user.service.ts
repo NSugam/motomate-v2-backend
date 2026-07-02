@@ -67,6 +67,7 @@ export class UserService {
 
     if (
       userData.email === 'test@gmail.com' &&
+      updateDetails.email &&
       updateDetails.email !== 'test@gmail.com'
     ) {
       throw new UnauthorizedException(
