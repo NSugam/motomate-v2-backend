@@ -96,6 +96,7 @@ export class AppModule implements NestModule {
       .exclude(
         { path: 'health-check', method: RequestMethod.HEAD },
         { path: 'health-check', method: RequestMethod.GET },
+        { path: 'api/user/permanent', method: RequestMethod.DELETE },
         { path: 'auth/login', method: RequestMethod.POST },
         { path: 'auth/register', method: RequestMethod.POST },
         { path: 'otp/generate', method: RequestMethod.POST },
