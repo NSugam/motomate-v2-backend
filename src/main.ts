@@ -21,6 +21,7 @@ async function bootstrap() {
       'http://localhost:5173',
       'https://motomate.cbtech.com.np',
       'https://motomate.neupanesugam.com.np',
+      'https://www.neupanesugam.com.np',
     ],
     credentials: true,
   });
