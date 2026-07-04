@@ -77,15 +77,15 @@ export class PartService {
     });
   };
 
-  async update(id: string, payload: UpdatePartDTO, userId: string) {
-    const data = await this.findOrFail({ id, userId });
+  async update(id: string, payload: UpdatePartDTO) {
+    const data = await this.findOrFail({ id });
     const updated = this.partRepo.merge(data, payload);
     await this.partRepo.update(id, updated);
     return { message: 'Part Updated Successfully' };
   }
 
-  async delete(id: string, userId: string) {
-    const part = await this.partRepo.findOne({ where: { id, userId } });
+  async delete(id: string) {
+    const part = await this.partRepo.findOne({ where: { id } });
     if (!part) throw new BadRequestException('Part not found');
 
     // Check if used in Servicing
@@ -109,8 +109,8 @@ export class PartService {
     return { message: 'Part deleted successfully' };
   }
 
-  async forceDelete(id: string, userId: string) {
-    const part = await this.partRepo.findOne({ where: { id, userId } });
+  async forceDelete(id: string) {
+    const part = await this.partRepo.findOne({ where: { id } });
     if (!part) throw new BadRequestException('Part not found');
     await this.partRepo.remove(part);
     return { message: `Part: ${part.name} force deleted!` };

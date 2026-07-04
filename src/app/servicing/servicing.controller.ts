@@ -12,7 +12,9 @@ import { UserFilterType } from 'src/common/common.type';
 import { IdDTO } from 'src/common/dto';
 import { OrmWhereType } from 'src/common/orm.type';
 import { GetUser, UserFilter } from 'src/decorators/get-user.decorator';
+import { VehicleAccessHelper } from 'src/vehicle-access/vehicle-access.helper';
 import { ILike } from 'typeorm';
+import { SharedVehiclePermissionENUM } from '../shared-vehicle/entities/shared-vehicle.entity';
 import { LoggedInUser } from '../user/user.type';
 import { ServicingFilter } from './dto/filter.servicing';
 import { CreateServicingDTO, UpdateServicingDTO } from './dto/servicing.dto';
@@ -25,22 +27,39 @@ import { ServicingService } from './servicing.service';
 
 @Controller('servicing')
 export class ServicingController {
-  constructor(private readonly servicingService: ServicingService) {}
+  constructor(
+    private readonly servicingService: ServicingService,
+    private readonly vehicleAccessHelper: VehicleAccessHelper,
+  ) {}
 
   @Post()
-  create(@Body() body: CreateServicingDTO, @GetUser() user: LoggedInUser) {
+  async create(
+    @Body() body: CreateServicingDTO,
+    @GetUser() user: LoggedInUser,
+  ) {
+    await this.vehicleAccessHelper.validateAccess(
+      user.id,
+      user.defaultVehicleId,
+      SharedVehiclePermissionENUM.VIEW,
+    );
     return this.servicingService.create(body, user);
   }
 
   @Get()
-  findAll(
+  async findAll(
     @Query() { searchTerm, vehicleIdFilter, ...pagination }: ServicingFilter,
     @UserFilter() { userId, vehicleId }: UserFilterType,
   ) {
-    const filter: OrmWhereType<Servicing> = { userId, vehicleId };
+    const filter: OrmWhereType<Servicing> = { vehicleId };
 
     if (searchTerm) filter.location = ILike(`%${searchTerm}%`);
+
     if (vehicleIdFilter) filter.vehicleId = vehicleIdFilter;
+    await this.vehicleAccessHelper.validateAccess(
+      userId,
+      vehicleId,
+      SharedVehiclePermissionENUM.VIEW,
+    );
 
     return this.servicingService.findAndCountWithTotal(
       filter,
@@ -54,7 +73,15 @@ export class ServicingController {
   }
 
   @Get(':id')
-  findOne(@Param() { id }: IdDTO, @UserFilter() { userId }: UserFilterType) {
+  async findOne(
+    @Param() { id }: IdDTO,
+    @UserFilter() { userId, vehicleId }: UserFilterType,
+  ) {
+    await this.vehicleAccessHelper.validateAccess(
+      userId,
+      vehicleId,
+      SharedVehiclePermissionENUM.VIEW,
+    );
     return this.servicingService.findOne(
       { id, userId },
       servicingSelectWithRelation,
@@ -63,16 +90,29 @@ export class ServicingController {
   }
 
   @Patch(':id')
-  update(
+  async update(
     @Param() { id }: IdDTO,
     @Body() body: UpdateServicingDTO,
     @UserFilter() { userId, vehicleId }: UserFilterType,
   ) {
+    await this.vehicleAccessHelper.validateAccess(
+      userId,
+      vehicleId,
+      SharedVehiclePermissionENUM.EDIT,
+    );
     return this.servicingService.update(id, body, userId, vehicleId);
   }
 
   @Delete(':id')
-  delete(@Param() { id }: IdDTO, @UserFilter() { userId }: UserFilterType) {
-    return this.servicingService.delete(id, userId);
+  async delete(
+    @Param() { id }: IdDTO,
+    @UserFilter() { userId, vehicleId }: UserFilterType,
+  ) {
+    await this.vehicleAccessHelper.validateAccess(
+      userId,
+      vehicleId,
+      SharedVehiclePermissionENUM.EDIT,
+    );
+    return this.servicingService.delete(id);
   }
 }

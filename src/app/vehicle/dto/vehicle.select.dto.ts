@@ -3,6 +3,7 @@ import { Vehicle } from '../entities/vehicle.entity';
 export const vehicleRelations: (keyof Vehicle)[] = [
   'masterData',
   'vehicleImage',
+  'shareDetails',
 ];
 
 export const vehicleSelectFields = {

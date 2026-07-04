@@ -12,21 +12,31 @@ import { UserFilterType } from 'src/common/common.type';
 import { IdDTO, optionalPagiSearchTermDTO } from 'src/common/dto';
 import { OrmWhereType } from 'src/common/orm.type';
 import { UserFilter } from 'src/decorators/get-user.decorator';
+import { VehicleAccessHelper } from 'src/vehicle-access/vehicle-access.helper';
 import { ILike } from 'typeorm';
+import { SharedVehiclePermissionENUM } from '../shared-vehicle/entities/shared-vehicle.entity';
 import { CreateFillupsDTO, UpdateFillupsDTO } from './dto/fillups.dto';
 import { Fillups } from './entities/fillup.entity';
 import { FillupsService } from './fillups.service';
 
 @Controller('fillups')
 export class FillupsController {
-  constructor(private readonly fillupsService: FillupsService) {}
+  constructor(
+    private readonly fillupsService: FillupsService,
+    private readonly vehicleAccessHelper: VehicleAccessHelper,
+  ) {}
 
   @Get()
-  findAll(
+  async findAll(
     @Query() { searchTerm, ...pagination }: optionalPagiSearchTermDTO,
     @UserFilter() { userId, vehicleId }: UserFilterType,
   ) {
-    const filter: OrmWhereType<Fillups> = { userId, vehicleId };
+    await this.vehicleAccessHelper.validateAccess(
+      userId,
+      vehicleId,
+      SharedVehiclePermissionENUM.VIEW,
+    );
+    const filter: OrmWhereType<Fillups> = { vehicleId };
 
     if (searchTerm) filter.englishDate = ILike(`%${searchTerm}%`);
 
@@ -42,35 +52,55 @@ export class FillupsController {
   }
 
   @Get(':id')
-  findOne(
+  async findOne(
     @Param() { id }: IdDTO,
     @UserFilter() { userId, vehicleId }: UserFilterType,
   ) {
-    return this.fillupsService.findOne({ id, userId, vehicleId }, []);
+    await this.vehicleAccessHelper.validateAccess(
+      userId,
+      vehicleId,
+      SharedVehiclePermissionENUM.VIEW,
+    );
+    return this.fillupsService.findOne({ id, vehicleId }, []);
   }
 
   @Post()
-  create(
+  async create(
     @Body() body: CreateFillupsDTO,
     @UserFilter() { userId, vehicleId }: UserFilterType,
   ) {
+    await this.vehicleAccessHelper.validateAccess(
+      userId,
+      vehicleId,
+      SharedVehiclePermissionENUM.VIEW,
+    );
     return this.fillupsService.create(body, { userId, vehicleId });
   }
 
   @Patch(':id')
-  update(
+  async update(
     @Body() body: UpdateFillupsDTO,
     @Param() { id }: IdDTO,
     @UserFilter() { userId, vehicleId }: UserFilterType,
   ) {
+    await this.vehicleAccessHelper.validateAccess(
+      userId,
+      vehicleId,
+      SharedVehiclePermissionENUM.VIEW,
+    );
     return this.fillupsService.update(id, { userId, vehicleId }, body);
   }
 
   @Delete(':id')
-  delete(
+  async delete(
     @Param() { id }: IdDTO,
     @UserFilter() { userId, vehicleId }: UserFilterType,
   ) {
+    await this.vehicleAccessHelper.validateAccess(
+      userId,
+      vehicleId,
+      SharedVehiclePermissionENUM.VIEW,
+    );
     return this.fillupsService.delete(id, { userId, vehicleId });
   }
 }

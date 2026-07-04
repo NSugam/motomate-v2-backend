@@ -265,8 +265,8 @@ export class ServicingService {
     };
   }
 
-  async delete(id: string, userId: string) {
-    await this.findOrFail({ id, userId });
+  async delete(id: string) {
+    await this.findOrFail({ id });
     await this.servicingRepo.delete(id);
     return { message: 'Servicing Deleted Successfully' };
   }

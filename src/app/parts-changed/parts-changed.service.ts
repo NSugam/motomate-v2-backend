@@ -18,6 +18,7 @@ import {
 
 import NepaliDate from 'nepali-date-converter';
 import { Part } from '../part/entities/part.entity';
+import { ReminderTypeENUM } from '../service-reminder/dto/reminder.types';
 import { Servicing } from '../servicing/entities/servicing.entity';
 import { LoggedInUser } from '../user/user.type';
 import {
@@ -25,7 +26,6 @@ import {
   UpdatePartsChangedDTO,
 } from './dto/parts-changed.dto';
 import { PartsChanged } from './entities/parts-changed.entity';
-import { ReminderTypeENUM } from '../service-reminder/dto/reminder.types';
 
 type PartsChangedTotals = {
   totalPartsCost: number;
@@ -146,7 +146,6 @@ export class PartsChangedService {
   }
 
   async getLatestServicingParts(
-    userId: string,
     vehicleId: string,
     fromServicing?: boolean,
     checkReminder?: boolean,
@@ -154,7 +153,7 @@ export class PartsChangedService {
     const subQuery = this.partsChangedRepo
       .createQueryBuilder('pc')
       .select('DISTINCT ON (pc.partId) pc.id', 'id')
-      .where('pc.userId = :userId', { userId })
+      // .where('pc.userId = :userId', { userId })
       .andWhere('pc.vehicleId = :vehicleId', { vehicleId });
 
     if (fromServicing !== undefined) {
@@ -210,13 +209,8 @@ export class PartsChangedService {
     return [data, data.length];
   }
 
-  async getDuePartsReminders(
-    userId: string,
-    vehicleId: string,
-    currentOdo: number,
-  ) {
+  async getDuePartsReminders(vehicleId: string, currentOdo: number) {
     const [data] = await this.getLatestServicingParts(
-      userId,
       vehicleId,
       undefined,
       true,
@@ -310,8 +304,8 @@ export class PartsChangedService {
     return [result, result.length];
   }
 
-  async update(id: string, payload: UpdatePartsChangedDTO, userId: string) {
-    const data = await this.findOrFail({ id, userId });
+  async update(id: string, payload: UpdatePartsChangedDTO) {
+    const data = await this.findOrFail({ id });
 
     if (payload.servicingId) {
       data.servicing = await this.servicingRepo.findOneOrFail({
@@ -332,8 +326,8 @@ export class PartsChangedService {
     return { message: 'Part Change Record Updated Successfully' };
   }
 
-  async delete(id: string, userId: string) {
-    await this.findOrFail({ id, userId }, []);
+  async delete(id: string) {
+    await this.findOrFail({ id }, []);
     await this.partsChangedRepo.delete(id);
     return { message: 'Part Change Record Deleted Successfully' };
   }

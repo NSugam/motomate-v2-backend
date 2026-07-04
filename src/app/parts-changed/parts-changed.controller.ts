@@ -13,7 +13,9 @@ import { UserFilterType } from 'src/common/common.type';
 import { IdDTO } from 'src/common/dto';
 import { OrmWhereType } from 'src/common/orm.type';
 import { GetUser, UserFilter } from 'src/decorators/get-user.decorator';
+import { VehicleAccessHelper } from 'src/vehicle-access/vehicle-access.helper';
 import { ILike } from 'typeorm';
+import { SharedVehiclePermissionENUM } from '../shared-vehicle/entities/shared-vehicle.entity';
 import { LoggedInUser } from '../user/user.type';
 import {
   CreatePartsChangedDTO,
@@ -29,15 +31,24 @@ import { PartsChangedService } from './parts-changed.service';
 
 @Controller('parts-changed')
 export class PartsChangedController {
-  constructor(private readonly partsChangedService: PartsChangedService) {}
+  constructor(
+    private readonly partsChangedService: PartsChangedService,
+    private readonly vehicleAccessHelper: VehicleAccessHelper,
+  ) {}
 
   @Get()
-  findAll(
+  async findAll(
     @Query()
     { searchTerm, fromServicing, ...pagination }: PartsChangedFilterDTO,
     @UserFilter() { userId, vehicleId }: UserFilterType,
   ) {
-    const filter: OrmWhereType<PartsChanged> = { userId, vehicleId };
+    await this.vehicleAccessHelper.validateAccess(
+      userId,
+      vehicleId,
+      SharedVehiclePermissionENUM.VIEW,
+    );
+
+    const filter: OrmWhereType<PartsChanged> = { vehicleId };
     if (searchTerm) filter.part = { name: ILike(`%${searchTerm}%`) };
     if (fromServicing !== undefined) filter.fromServicing = fromServicing;
 
@@ -54,13 +65,17 @@ export class PartsChangedController {
 
   @Get('last-serviced')
   @ApiOperation({ summary: 'Find Last Parts Changed' })
-  getLatestPartsChanged(
+  async getLatestPartsChanged(
     @Query()
     { fromServicing, checkReminder }: PartsChangedFilterDTO,
     @UserFilter() { userId, vehicleId }: UserFilterType,
   ) {
-    return this.partsChangedService.getLatestServicingParts(
+    await this.vehicleAccessHelper.validateAccess(
       userId,
+      vehicleId,
+      SharedVehiclePermissionENUM.VIEW,
+    );
+    return this.partsChangedService.getLatestServicingParts(
       vehicleId,
       fromServicing,
       checkReminder,
@@ -70,21 +85,22 @@ export class PartsChangedController {
   @Get('due-parts-reminders')
   @ApiOperation({ summary: 'Find Due Parts Reminders' })
   getDuePartsReminders(
-    @UserFilter() { userId, vehicleId, currentOdo }: UserFilterType,
+    @UserFilter() { vehicleId, currentOdo }: UserFilterType,
   ) {
-    return this.partsChangedService.getDuePartsReminders(
-      userId,
-      vehicleId,
-      currentOdo,
-    );
+    return this.partsChangedService.getDuePartsReminders(vehicleId, currentOdo);
   }
 
   @Get('part/:id')
   @ApiOperation({ summary: 'Find parts changed by part id' })
-  findByPartId(
+  async findByPartId(
     @Param() { id }: IdDTO,
-    @UserFilter() { userId }: UserFilterType,
+    @UserFilter() { userId, vehicleId }: UserFilterType,
   ) {
+    await this.vehicleAccessHelper.validateAccess(
+      userId,
+      vehicleId,
+      SharedVehiclePermissionENUM.VIEW,
+    );
     return this.partsChangedService.findOne(
       { part: { id }, userId },
       partsChangedSelectFields,
@@ -94,26 +110,55 @@ export class PartsChangedController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Find parts changed by id' })
-  findOne(@Param() { id }: IdDTO, @UserFilter() { userId }: UserFilterType) {
+  async findOne(
+    @Param() { id }: IdDTO,
+    @UserFilter() { userId, vehicleId }: UserFilterType,
+  ) {
+    await this.vehicleAccessHelper.validateAccess(
+      userId,
+      vehicleId,
+      SharedVehiclePermissionENUM.VIEW,
+    );
     return this.partsChangedService.findOne({ id, userId }, []);
   }
 
   @Post()
-  create(@Body() body: CreatePartsChangedDTO, @GetUser() user: LoggedInUser) {
+  async create(
+    @Body() body: CreatePartsChangedDTO,
+    @GetUser() user: LoggedInUser,
+  ) {
+    await this.vehicleAccessHelper.validateAccess(
+      user.id,
+      user.defaultVehicleId,
+      SharedVehiclePermissionENUM.EDIT,
+    );
     return this.partsChangedService.create(body, user);
   }
 
   @Patch(':id')
-  update(
+  async update(
     @Param() { id }: IdDTO,
     @Body() body: UpdatePartsChangedDTO,
-    @UserFilter() { userId }: UserFilterType,
+    @UserFilter() { userId, vehicleId }: UserFilterType,
   ) {
-    return this.partsChangedService.update(id, body, userId);
+    await this.vehicleAccessHelper.validateAccess(
+      userId,
+      vehicleId,
+      SharedVehiclePermissionENUM.VIEW,
+    );
+    return this.partsChangedService.update(id, body);
   }
 
   @Delete(':id')
-  delete(@Param() { id }: IdDTO, @UserFilter() { userId }: UserFilterType) {
-    return this.partsChangedService.delete(id, userId);
+  async delete(
+    @Param() { id }: IdDTO,
+    @UserFilter() { userId, vehicleId }: UserFilterType,
+  ) {
+    await this.vehicleAccessHelper.validateAccess(
+      userId,
+      vehicleId,
+      SharedVehiclePermissionENUM.VIEW,
+    );
+    return this.partsChangedService.delete(id);
   }
 }

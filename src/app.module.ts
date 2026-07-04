@@ -25,6 +25,7 @@ import { RoleModule } from './app/rbac/role/role.module';
 import { RouteModule } from './app/rbac/route/route.module';
 import { ServiceReminderModule } from './app/service-reminder/service-reminder.module';
 import { ServicingModule } from './app/servicing/servicing.module';
+import { SharedVehicleModule } from './app/shared-vehicle/shared-vehicle.module';
 import { UploadModule } from './app/upload/upload.module';
 import { User } from './app/user/entities/user.entity';
 import { UserModule } from './app/user/user.module';
@@ -35,6 +36,7 @@ import { SuccessResponseInterceptor } from './interceptor/response.interceptor';
 import { MasterDataModule } from './master-data/master-data.module';
 import { AuthMiddleware } from './middlewares/auth.middleware';
 import { VehicleMiddleware } from './middlewares/vehicle.middleware';
+import { VehicleAccessModule } from './vehicle-access/vehicle-access.module';
 import { VersionControlModule } from './version-control/version-control.module';
 
 @Module({
@@ -75,6 +77,8 @@ import { VersionControlModule } from './version-control/version-control.module';
     MasterDataModule,
     NotificationModule,
     UploadModule,
+    SharedVehicleModule,
+    VehicleAccessModule,
   ],
   controllers: [],
   providers: [

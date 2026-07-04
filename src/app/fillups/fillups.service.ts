@@ -186,7 +186,7 @@ export class FillupsService {
       const repository = queryRunner.manager.getRepository(Fillups);
 
       const existing = await repository.findOneOrFail({
-        where: { id, userId, vehicleId },
+        where: { id, vehicleId },
       });
 
       const all = await repository.find({
@@ -245,11 +245,11 @@ export class FillupsService {
       const repository = queryRunner.manager.getRepository(Fillups);
 
       await repository.findOneOrFail({
-        where: { id, userId, vehicleId },
+        where: { id, vehicleId },
       });
 
       const all = await repository.find({
-        where: { userId, vehicleId },
+        where: { vehicleId },
         order: { odoReading: 'ASC' },
       });
 

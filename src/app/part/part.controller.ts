@@ -12,7 +12,9 @@ import { UserFilterType } from 'src/common/common.type';
 import { IdDTO, optionalPagiSearchTermDTO } from 'src/common/dto';
 import { OrmWhereType } from 'src/common/orm.type';
 import { GetUser, UserFilter } from 'src/decorators/get-user.decorator';
+import { VehicleAccessHelper } from 'src/vehicle-access/vehicle-access.helper';
 import { ILike } from 'typeorm';
+import { SharedVehiclePermissionENUM } from '../shared-vehicle/entities/shared-vehicle.entity';
 import { LoggedInUser } from '../user/user.type';
 import { CreatePartDTO, UpdatePartDTO } from './dto/part.dto';
 import { partsRelations, partsSelectWithRelation } from './dto/parts.select';
@@ -21,14 +23,22 @@ import { PartService } from './part.service';
 
 @Controller('part')
 export class PartController {
-  constructor(private readonly partService: PartService) {}
+  constructor(
+    private readonly partService: PartService,
+    private readonly vehicleAccessHelper: VehicleAccessHelper,
+  ) {}
 
   @Get()
-  findAll(
+  async findAll(
     @Query() { searchTerm, ...pagination }: optionalPagiSearchTermDTO,
     @UserFilter() { userId, vehicleId }: UserFilterType,
   ) {
-    const filter: OrmWhereType<Part> = { userId, vehicleId };
+    await this.vehicleAccessHelper.validateAccess(
+      userId,
+      vehicleId,
+      SharedVehiclePermissionENUM.VIEW,
+    );
+    const filter: OrmWhereType<Part> = { vehicleId };
     if (searchTerm) filter.name = ILike(`%${searchTerm}%`);
     return this.partService.findAndCount(
       filter,
@@ -42,38 +52,69 @@ export class PartController {
   }
 
   @Get(':id')
-  findOne(@Param() { id }: IdDTO, @UserFilter() { userId }: UserFilterType) {
+  async findOne(
+    @Param() { id }: IdDTO,
+    @UserFilter() { userId, vehicleId }: UserFilterType,
+  ) {
+    await this.vehicleAccessHelper.validateAccess(
+      userId,
+      vehicleId,
+      SharedVehiclePermissionENUM.VIEW,
+    );
     return this.partService.findOne(
-      { id, userId },
+      { id },
       partsSelectWithRelation,
       partsRelations,
     );
   }
 
   @Post()
-  create(@Body() body: CreatePartDTO, @GetUser() user: LoggedInUser) {
+  async create(@Body() body: CreatePartDTO, @GetUser() user: LoggedInUser) {
+    await this.vehicleAccessHelper.validateAccess(
+      user.id,
+      user.defaultVehicleId,
+      SharedVehiclePermissionENUM.VIEW,
+    );
     return this.partService.create(body, user);
   }
 
   @Patch(':id')
-  update(
+  async update(
     @Param() { id }: IdDTO,
     @Body() body: UpdatePartDTO,
-    @UserFilter() { userId }: UserFilterType,
+    @UserFilter() { userId, vehicleId }: UserFilterType,
   ) {
-    return this.partService.update(id, body, userId);
+    await this.vehicleAccessHelper.validateAccess(
+      userId,
+      vehicleId,
+      SharedVehiclePermissionENUM.VIEW,
+    );
+    return this.partService.update(id, body);
   }
 
   @Delete(':id')
-  delete(@Param() { id }: IdDTO, @UserFilter() { userId }: UserFilterType) {
-    return this.partService.delete(id, userId);
+  async delete(
+    @Param() { id }: IdDTO,
+    @UserFilter() { userId, vehicleId }: UserFilterType,
+  ) {
+    await this.vehicleAccessHelper.validateAccess(
+      userId,
+      vehicleId,
+      SharedVehiclePermissionENUM.VIEW,
+    );
+    return this.partService.delete(id);
   }
 
   @Delete('force/:id')
-  forceDelete(
+  async forceDelete(
     @Param() { id }: IdDTO,
-    @UserFilter() { userId }: UserFilterType,
+    @UserFilter() { userId, vehicleId }: UserFilterType,
   ) {
-    return this.partService.forceDelete(id, userId);
+    await this.vehicleAccessHelper.validateAccess(
+      userId,
+      vehicleId,
+      SharedVehiclePermissionENUM.VIEW,
+    );
+    return this.partService.forceDelete(id);
   }
 }

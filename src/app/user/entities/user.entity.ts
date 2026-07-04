@@ -3,8 +3,8 @@ import {
   Column,
   Entity,
   JoinColumn,
+  ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { UserRoleENUM } from '../user.type';
@@ -18,7 +18,7 @@ export class User {
   @Column({ type: 'bigint', name: 'defaultVehicleId', nullable: true })
   defaultVehicleId: string;
 
-  @OneToOne(() => Vehicle, { nullable: true, onDelete: 'SET NULL' })
+  @ManyToOne(() => Vehicle, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'defaultVehicleId' })
   defaultVehicle: Vehicle;
 

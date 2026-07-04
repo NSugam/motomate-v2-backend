@@ -1,4 +1,5 @@
 import NepaliDate from 'nepali-date-converter';
+import { SharedVehicle } from 'src/app/shared-vehicle/entities/shared-vehicle.entity';
 import { Upload } from 'src/app/upload/entities/upload.entity';
 import { User } from 'src/app/user/entities/user.entity';
 import { MasterData } from 'src/master-data/entities/md_bikes.entity';
@@ -9,6 +10,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -41,6 +43,11 @@ export class Vehicle {
     nullable: true,
   })
   masterData: MasterData;
+
+  @OneToMany(() => SharedVehicle, (data) => data.vehicle, {
+    nullable: true,
+  })
+  shareDetails: SharedVehicle;
 
   @Column({ type: 'text' })
   brand: string;

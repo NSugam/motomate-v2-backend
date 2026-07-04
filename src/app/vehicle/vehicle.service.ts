@@ -155,22 +155,21 @@ export class VehicleService {
     return { message: 'Vehicle Updated Successfully' };
   }
 
-  async getAFE({
-    userId,
-    vehicleId,
-  }: UserFilterType): Promise<{ afe: number }> {
+  async getAFE({ vehicleId }: UserFilterType): Promise<{ afe: number }> {
     const afeRaw = await this.fillupsRepo
       .createQueryBuilder()
       .select('COALESCE(AVG(sub.mileage), 0)', 'afe')
       .from((subQuery) => {
-        return subQuery
-          .select('f.mileage', 'mileage')
-          .from('fillups', 'f')
-          .where('f.userId = :userId', { userId })
-          .andWhere('f.vehicleId = :vehicleId', { vehicleId })
-          .andWhere('f.isPartial = false')
-          .orderBy('f.created_at', 'DESC')
-          .limit(5);
+        return (
+          subQuery
+            .select('f.mileage', 'mileage')
+            .from('fillups', 'f')
+            // .where('f.userId = :userId', { userId })
+            .andWhere('f.vehicleId = :vehicleId', { vehicleId })
+            .andWhere('f.isPartial = false')
+            .orderBy('f.created_at', 'DESC')
+            .limit(5)
+        );
       }, 'sub')
       .getRawOne<{ afe: string }>();
 
