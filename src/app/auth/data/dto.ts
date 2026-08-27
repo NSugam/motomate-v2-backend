@@ -30,6 +30,11 @@ export class CreateUserDto {
   @IsEmail()
   email: string;
 
+  @ApiPropertyOptional({ example: 'jira@jira.com' })
+  @IsOptional()
+  @IsEmail()
+  jiraEmail: string;
+
   @ApiProperty({ example: 'admin123' })
   @IsNotEmpty()
   @IsString()

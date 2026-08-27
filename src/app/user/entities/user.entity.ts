@@ -38,6 +38,9 @@ export class User {
   @Column({ type: 'text', unique: true })
   email: string;
 
+  @Column({ type: 'text', nullable: true })
+  jiraEmail: string;
+
   @Column({ type: 'text', nullable: true, unique: true })
   phone: string;
 

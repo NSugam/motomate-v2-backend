@@ -17,6 +17,7 @@ export const userSelectFields = {
   username: true,
   phone: true,
   email: true,
+  jiraEmail: true,
   verified: true,
   role: true,
   devices: {
