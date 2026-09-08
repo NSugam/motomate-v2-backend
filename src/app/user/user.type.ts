@@ -3,7 +3,7 @@ import { UserDevice } from './entities/user.device.entity';
 
 export enum UserRoleENUM {
   SUPER_ADMIN = 'super_admin',
-  MANAGER = 'manager',
+  TEST = 'test_account',
   ADMIN = 'admin',
   USER = 'user',
 }

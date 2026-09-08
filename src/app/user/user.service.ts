@@ -79,18 +79,15 @@ export class UserService {
       throw new NotFoundException(`User with id ${id} not found`);
     }
 
-    // Prevent modifying an admin or super admin account (and don't update their role)
-    if (
-      userData.role === UserRoleENUM.ADMIN ||
-      userData.role === UserRoleENUM.SUPER_ADMIN
-    ) {
+    // Prevent modifying a test account (and don't update their role)
+    if (userData.role === UserRoleENUM.TEST) {
       // remove role from updateDetails so it never updates
       if ('role' in updateDetails) {
         delete updateDetails.role;
       }
 
       throw new UnauthorizedException(
-        'Unauthorised: Admin or Super Admin account cannot be modified.',
+        'Unauthorised: Test account cannot be modified.',
       );
     }
 
