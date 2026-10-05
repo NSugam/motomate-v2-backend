@@ -24,10 +24,21 @@ export class AuthMiddleware implements NestMiddleware {
 
   async use(req: RequestWithUser, _res: Response, next: NextFunction) {
     const token = req.cookies._xf_;
+    const deviceId = req.header('deviceid');
+
     if (!token)
       throw new UnauthorizedException('Unauthorized: Please login to continue');
 
-    const decoded = jwt.verify(token, env.JWT_SECRET) as { userId: string };
+    if (!deviceId)
+      throw new UnauthorizedException('Unauthorized: Device ID is required');
+
+    const decoded = jwt.verify(token, env.JWT_SECRET) as {
+      userId: string;
+      deviceId: string;
+    };
+
+    if (decoded.deviceId !== deviceId)
+      throw new UnauthorizedException('Unauthorized: Invalid Device');
 
     const user = await this.userEntity.findOne({
       where: { id: decoded.userId },

@@ -96,9 +96,13 @@ export class AuthService {
       }
     }
 
-    const token = jwt.sign({ userId: userData.id }, JWT_SECRET, {
-      expiresIn: '7d',
-    });
+    const token = jwt.sign(
+      { userId: userData.id, deviceId: normalizedDeviceId },
+      JWT_SECRET,
+      {
+        expiresIn: '7d',
+      },
+    );
 
     res.cookie('_xf_', token, {
       ...this.cookieOptions,
