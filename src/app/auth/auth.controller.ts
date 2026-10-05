@@ -1,9 +1,9 @@
 import { Body, Controller, Post, Res } from '@nestjs/common';
 import { Response } from 'express';
+import { DeviceInfoType } from 'src/common/common.type';
+import { DeviceInfo } from 'src/decorators/device-info.decorator';
 import { AuthService } from './auth.service';
 import { CreateUserDto, LoginUserDto } from './data/dto';
-import { DeviceInfo } from 'src/decorators/device-info.decorator';
-import { DeviceInfoType } from 'src/common/common.type';
 
 @Controller('auth')
 export class AuthController {
@@ -18,10 +18,9 @@ export class AuthController {
   login(
     @Body() user: LoginUserDto,
     @Res({ passthrough: true }) res: Response,
-    @DeviceInfo() device: DeviceInfoType,
+    @DeviceInfo() deviceInfo: DeviceInfoType,
   ) {
-    console.log(device);
-    return this.authService.login(user, res);
+    return this.authService.login(user, res, deviceInfo);
   }
 
   @Post('logout')

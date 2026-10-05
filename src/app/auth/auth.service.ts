@@ -12,14 +12,19 @@ import * as jwt from 'jsonwebtoken';
 import { env } from 'src/config/env';
 import { EntityManager, Repository } from 'typeorm';
 import { User } from '../user/entities/user.entity';
+import { UserDevice } from '../user/entities/user.device.entity';
 import { UserRoleENUM } from '../user/user.type';
 import { CreateUserDto, LoginUserDto } from './data/dto';
+import { DeviceInfoType } from 'src/common/common.type';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userEntity: Repository<User>,
+
+    @InjectRepository(UserDevice)
+    private readonly deviceEntity: Repository<UserDevice>,
 
     private readonly entityManager: EntityManager,
   ) {}
@@ -58,9 +63,8 @@ export class AuthService {
     return true;
   }
 
-  async login(user: LoginUserDto, res: Response) {
+  async login(user: LoginUserDto, res: Response, deviceInfo: DeviceInfoType) {
     const JWT_SECRET = env.JWT_SECRET;
-
     const userData = await this.userEntity.findOne({
       where: { email: user.email },
     });
@@ -68,6 +72,29 @@ export class AuthService {
 
     const isMatch = await bcrypt.compare(user.password, userData.password);
     if (!isMatch) throw new UnauthorizedException('Invalid credentials');
+
+    const normalizedDeviceId = deviceInfo.deviceId?.trim();
+    if (normalizedDeviceId) {
+      const existingDevice = await this.deviceEntity.findOne({
+        where: {
+          deviceId: normalizedDeviceId,
+          user: { id: userData.id },
+        },
+      });
+
+      if (existingDevice) {
+        existingDevice.deviceName = deviceInfo.deviceName;
+        await this.deviceEntity.save(existingDevice);
+      } else {
+        await this.deviceEntity.save(
+          this.deviceEntity.create({
+            deviceId: normalizedDeviceId,
+            deviceName: deviceInfo.deviceName,
+            user: userData,
+          }),
+        );
+      }
+    }
 
     const token = jwt.sign({ userId: userData.id }, JWT_SECRET, {
       expiresIn: '7d',

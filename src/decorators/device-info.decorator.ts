@@ -7,11 +7,23 @@ export const DeviceInfo = createParamDecorator(
     const req = ctx.switchToHttp().getRequest<Request>();
 
     const parser = new UAParser.UAParser(req.headers['user-agent']);
+    const headerDeviceId = req.headers['deviceId'];
+    const browser = parser.getBrowser();
+    const os = parser.getOS();
+    const device = parser.getDevice();
+    const deviceName =
+      [device.vendor, device.model].filter(Boolean).join(' ') ||
+      [browser.name, os.name].filter(Boolean).join(' on ') ||
+      'Unknown device';
 
     return {
-      browser: parser.getBrowser(),
-      os: parser.getOS(),
-      device: parser.getDevice(),
+      browser,
+      deviceId: Array.isArray(headerDeviceId)
+        ? (headerDeviceId[0] ?? null)
+        : (headerDeviceId ?? null),
+      deviceName,
+      os,
+      device,
       ip: req.ip,
     };
   },

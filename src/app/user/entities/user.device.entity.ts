@@ -12,8 +12,14 @@ export class UserDevice {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ nullable: true })
   expoToken: string;
+
+  @Column({ nullable: true })
+  deviceId: string;
+
+  @Column({ nullable: true })
+  deviceName: string;
 
   @ManyToOne(() => User, (user) => user.devices, {
     onDelete: 'CASCADE',

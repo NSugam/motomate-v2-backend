@@ -12,6 +12,8 @@ export type UserFilterType = {
 
 export type DeviceInfoType = {
   browser: UAParser.IBrowser;
+  deviceId: string | null;
+  deviceName: string;
   os: UAParser.IOS;
   device: UAParser.IDevice;
   ip: string;
