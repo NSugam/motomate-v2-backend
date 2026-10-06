@@ -190,6 +190,21 @@ export class UserService {
     };
   }
 
+  async deleteDevice(userId: string, deviceId: string) {
+    const device = await this.deviceRepo.findOne({
+      where: { deviceId, user: { id: userId } },
+    });
+
+    if (!device) throw new NotFoundException('Device not found');
+
+    await this.deviceRepo.delete(device.id);
+
+    return {
+      message: 'Device deleted successfully',
+      success: true,
+    };
+  }
+
   async permanentDelete(email: string, password: string) {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();

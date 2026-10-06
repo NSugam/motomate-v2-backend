@@ -15,6 +15,7 @@ import { ILike } from 'typeorm';
 import { RoleDto } from './dto/role-user.dto';
 import {
   ChangePasswordDTO,
+  DeleteDeviceDTO,
   PermanentDeleteAccountDTO,
   UpdateUserDto,
 } from './dto/update-user.dto';
@@ -47,6 +48,14 @@ export class UserController {
     @Body() dto: ChangePasswordDTO,
   ) {
     return this.usersService.changePassword(user, dto);
+  }
+
+  @Delete('device')
+  deleteDevice(
+    @Body() { deviceId }: DeleteDeviceDTO,
+    @GetUser() user: LoggedInUser,
+  ) {
+    return this.usersService.deleteDevice(user.id, deviceId);
   }
 
   @Get()

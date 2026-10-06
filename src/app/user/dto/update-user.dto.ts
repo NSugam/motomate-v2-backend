@@ -54,3 +54,10 @@ export class PermanentDeleteAccountDTO {
   @IsString()
   password: string;
 }
+
+export class DeleteDeviceDTO {
+  @ApiProperty({ example: 'device-id-from-client' })
+  @IsNotEmpty()
+  @IsString()
+  deviceId: string;
+}
