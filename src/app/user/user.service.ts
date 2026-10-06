@@ -35,7 +35,6 @@ export class UserService {
   ) {}
 
   getProfile(user: LoggedInUser) {
-    delete user.devices;
     return {
       message: 'Logged-In User Data',
       user,
