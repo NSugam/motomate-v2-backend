@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   HttpStatus,
   Injectable,
@@ -17,14 +18,13 @@ import { UserRoleENUM } from '../user/user.type';
 import { CreateUserDto, LoginUserDto } from './data/dto';
 import { DeviceInfoType } from 'src/common/common.type';
 
+const MAX_ACTIVE_DEVICES = 2;
+
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userEntity: Repository<User>,
-
-    @InjectRepository(UserDevice)
-    private readonly deviceEntity: Repository<UserDevice>,
 
     private readonly entityManager: EntityManager,
   ) {}
@@ -64,7 +64,6 @@ export class AuthService {
   }
 
   async login(user: LoginUserDto, res: Response, deviceInfo: DeviceInfoType) {
-    console.log(deviceInfo);
     const JWT_SECRET = env.JWT_SECRET;
     const userData = await this.userEntity.findOne({
       where: { email: user.email },
@@ -75,27 +74,58 @@ export class AuthService {
     if (!isMatch) throw new UnauthorizedException('Invalid credentials');
 
     const normalizedDeviceId = deviceInfo.deviceId?.trim();
-    if (normalizedDeviceId) {
-      const existingDevice = await this.deviceEntity.findOne({
+    if (!normalizedDeviceId) {
+      throw new BadRequestException('Device ID is required to login');
+    }
+
+    await this.entityManager.transaction(async (manager) => {
+      const lockedUser = await manager.getRepository(User).findOne({
+        where: { id: userData.id },
+        lock: { mode: 'pessimistic_write' },
+      });
+
+      if (!lockedUser) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+
+      const deviceRepository = manager.getRepository(UserDevice);
+      const existingDevice = await deviceRepository.findOne({
         where: {
           deviceId: normalizedDeviceId,
-          user: { id: userData.id },
+          user: { id: lockedUser.id },
         },
       });
 
       if (existingDevice) {
         existingDevice.deviceName = deviceInfo.deviceName;
-        await this.deviceEntity.save(existingDevice);
-      } else {
-        await this.deviceEntity.save(
-          this.deviceEntity.create({
-            deviceId: normalizedDeviceId,
-            deviceName: deviceInfo.deviceName,
-            user: userData,
-          }),
+        await deviceRepository.save(existingDevice);
+        return;
+      }
+
+      const devices = await deviceRepository.find({
+        where: { user: { id: lockedUser.id } },
+        select: { deviceId: true },
+      });
+      const activeDeviceIds = new Set(
+        devices
+          .map(({ deviceId }) => deviceId?.trim())
+          .filter((deviceId): deviceId is string => Boolean(deviceId)),
+      );
+
+      if (activeDeviceIds.size >= MAX_ACTIVE_DEVICES) {
+        throw new ConflictException(
+          `You can only be logged in on ${MAX_ACTIVE_DEVICES} devices at a time`,
         );
       }
-    }
+
+      await deviceRepository.save(
+        deviceRepository.create({
+          deviceId: normalizedDeviceId,
+          deviceName: deviceInfo.deviceName,
+          user: lockedUser,
+        }),
+      );
+    });
 
     const token = jwt.sign(
       { userId: userData.id, deviceId: normalizedDeviceId },

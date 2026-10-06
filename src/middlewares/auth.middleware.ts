@@ -37,9 +37,6 @@ export class AuthMiddleware implements NestMiddleware {
       deviceId: string;
     };
 
-    if (decoded.deviceId !== deviceId)
-      throw new UnauthorizedException('Unauthorized: Invalid Device');
-
     const user = await this.userEntity.findOne({
       where: { id: decoded.userId },
       select: userSelectWithRelation,
@@ -48,6 +45,9 @@ export class AuthMiddleware implements NestMiddleware {
 
     if (!user)
       throw new UnauthorizedException('Unauthorized: Invalid User Credentials');
+
+    if (!user?.devices?.some((device) => device.deviceId === deviceId))
+      throw new UnauthorizedException('Unauthorized: Invalid Device');
 
     req.user = user;
     next();
