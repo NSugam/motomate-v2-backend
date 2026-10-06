@@ -22,6 +22,7 @@ export const userSelectFields = {
   role: true,
   devices: {
     id: true,
+    createdAt: true,
     deviceId: true,
     deviceName: true,
     expoToken: true,
