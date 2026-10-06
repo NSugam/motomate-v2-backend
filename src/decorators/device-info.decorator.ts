@@ -7,7 +7,8 @@ export const DeviceInfo = createParamDecorator(
     const req = ctx.switchToHttp().getRequest<Request>();
 
     const parser = new UAParser.UAParser(req.headers['user-agent']);
-    const headerDeviceId = req.headers['deviceId'];
+    // const headerDeviceId = req.headers['deviceId'];
+    const headerDeviceId = req.header('deviceid');
     const browser = parser.getBrowser();
     const os = parser.getOS();
     const device = parser.getDevice();
@@ -18,9 +19,7 @@ export const DeviceInfo = createParamDecorator(
 
     return {
       browser,
-      deviceId: Array.isArray(headerDeviceId)
-        ? (headerDeviceId[0] ?? null)
-        : (headerDeviceId ?? null),
+      deviceId: headerDeviceId ?? null,
       deviceName,
       os,
       device,
