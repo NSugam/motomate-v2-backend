@@ -1,6 +1,7 @@
 import { Vehicle } from 'src/app/vehicle/entities/vehicle.entity';
 import {
   Column,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -28,6 +29,13 @@ export class User {
     default: () => 'CURRENT_TIMESTAMP',
   })
   createdAt: Date;
+
+  @DeleteDateColumn({
+    name: 'deleted_at',
+    type: 'timestamp',
+    nullable: true,
+  })
+  deletedAt?: Date;
 
   @Column({ type: 'text' })
   fullname: string;

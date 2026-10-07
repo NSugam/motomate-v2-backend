@@ -183,7 +183,7 @@ export class UserService {
     const user = await this.userRepo.findOneBy({ id });
     if (!user) throw new NotFoundException(`User with id ${id} not found`);
 
-    void this.userRepo.softDelete(user.id);
+    await this.userRepo.softDelete(user.id);
     return {
       message: `User: ${id} Deleted Successfully`,
       success: true,
