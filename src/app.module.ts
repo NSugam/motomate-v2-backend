@@ -7,7 +7,7 @@ import {
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { join } from 'path';
@@ -48,14 +48,14 @@ import { VersionControlModule } from './version-control/version-control.module';
       serveStaticOptions: {},
       rootPath: join(__dirname, '..'),
     }),
-    ThrottlerModule.forRoot({
-      throttlers: [
-        {
-          ttl: 60000, // expressed in micro secounds (default: 10 hits in 1 min)
-          limit: 1000,
-        },
-      ],
-    }),
+    // ThrottlerModule.forRoot({
+    //   throttlers: [
+    //     {
+    //       ttl: 60000, // expressed in micro secounds (default: 100 hits in 1 min)
+    //       limit: 10000,
+    //     },
+    //   ],
+    // }),
     ScheduleModule.forRoot(),
 
     HealthModule,
