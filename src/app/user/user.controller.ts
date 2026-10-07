@@ -7,7 +7,6 @@ import {
   Patch,
   Query,
 } from '@nestjs/common';
-import { Throttle } from '@nestjs/throttler';
 import { UserFilterType } from 'src/common/common.type';
 import { OrmWhereType } from 'src/common/orm.type';
 import { GetUser, UserFilter } from 'src/decorators/get-user.decorator';
@@ -42,7 +41,6 @@ export class UserController {
   }
 
   @Patch('change-password')
-  @Throttle({ default: { limit: 3, ttl: 60000 } })
   changePassword(
     @GetUser() user: LoggedInUser,
     @Body() dto: ChangePasswordDTO,
@@ -79,7 +77,6 @@ export class UserController {
   }
 
   @Delete('/permanent')
-  @Throttle({ default: { limit: 2, ttl: 3600000 } }) // 1 hour limit
   permanentDelete(@Query() { email, password }: PermanentDeleteAccountDTO) {
     return this.usersService.permanentDelete(email, password);
   }

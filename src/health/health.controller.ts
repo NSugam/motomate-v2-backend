@@ -1,5 +1,4 @@
 import { Controller, Get } from '@nestjs/common';
-import { SkipThrottle } from '@nestjs/throttler';
 import { DataSource } from 'typeorm';
 
 @Controller('health-check')
@@ -8,7 +7,6 @@ export class HealthController {
 
   // Healthcheck Only Endpoint
   @Get()
-  @SkipThrottle()
   check() {
     return {
       status: 'ok',
