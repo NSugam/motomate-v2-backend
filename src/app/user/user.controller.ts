@@ -7,7 +7,8 @@ import {
   Patch,
   Query,
 } from '@nestjs/common';
-import { UserFilterType } from 'src/common/common.type';
+import { DeviceInfoType, UserFilterType } from 'src/common/common.type';
+import { DeviceInfo } from 'src/decorators/device-info.decorator';
 import { OrmWhereType } from 'src/common/orm.type';
 import { GetUser, UserFilter } from 'src/decorators/get-user.decorator';
 import { ILike } from 'typeorm';
@@ -36,8 +37,9 @@ export class UserController {
   updateUser(
     @Body() updateDetails: UpdateUserDto,
     @UserFilter() { userId }: UserFilterType,
+    @DeviceInfo() { deviceId }: DeviceInfoType,
   ) {
-    return this.usersService.update(userId, updateDetails);
+    return this.usersService.update(userId, updateDetails, deviceId);
   }
 
   @Patch('change-password')
@@ -95,8 +97,13 @@ export class UserController {
     @Param('id') id: string,
     @Body() updateDetails: UpdateUserDto,
     @UserFilter() { userId }: UserFilterType,
+    @DeviceInfo() { deviceId }: DeviceInfoType,
   ) {
-    return this.usersService.update(userId ? userId : id, updateDetails);
+    return this.usersService.update(
+      userId ? userId : id,
+      updateDetails,
+      deviceId,
+    );
   }
 
   @Delete(':id')

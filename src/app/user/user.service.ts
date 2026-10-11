@@ -61,8 +61,16 @@ export class UserService {
     }
   };
 
-  async update(id: string, updateDetails: UpdateUserDto) {
+  async update(
+    id: string,
+    updateDetails: UpdateUserDto,
+    deviceId?: string | null,
+  ) {
     const userData = await this.userRepo.findOne({ where: { id } });
+
+    if (!userData) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
 
     if (
       userData.email === 'test@gmail.com' &&
@@ -72,10 +80,6 @@ export class UserService {
       throw new UnauthorizedException(
         'Unauthorised: Test account cannot be modified.',
       );
-    }
-
-    if (!userData) {
-      throw new NotFoundException(`User with id ${id} not found`);
     }
 
     // Prevent modifying a test account (and don't update their role)
@@ -102,6 +106,7 @@ export class UserService {
     }
 
     if (updateDetails.ExpoToken) {
+      const normalizedDeviceId = deviceId?.trim();
       const existingDevice = await this.deviceRepo.findOne({
         where: {
           expoToken: updateDetails.ExpoToken,
@@ -111,10 +116,14 @@ export class UserService {
       if (!existingDevice) {
         const device = this.deviceRepo.create({
           expoToken: updateDetails.ExpoToken,
+          deviceId: normalizedDeviceId,
           user: userData,
         });
 
         await this.deviceRepo.save(device);
+      } else if (normalizedDeviceId) {
+        existingDevice.deviceId = normalizedDeviceId;
+        await this.deviceRepo.save(existingDevice);
       }
       delete updateDetails.ExpoToken;
     }
