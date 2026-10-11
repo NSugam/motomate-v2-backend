@@ -107,23 +107,37 @@ export class UserService {
 
     if (updateDetails.ExpoToken) {
       const normalizedDeviceId = deviceId?.trim();
-      const existingDevice = await this.deviceRepo.findOne({
-        where: {
-          expoToken: updateDetails.ExpoToken,
-        },
-      });
+      const existingDeviceById = normalizedDeviceId
+        ? await this.deviceRepo.findOne({
+            where: {
+              deviceId: normalizedDeviceId,
+              user: { id: userData.id },
+            },
+          })
+        : null;
 
-      if (!existingDevice) {
-        const device = this.deviceRepo.create({
-          expoToken: updateDetails.ExpoToken,
-          deviceId: normalizedDeviceId,
-          user: userData,
+      if (existingDeviceById) {
+        existingDeviceById.expoToken = updateDetails.ExpoToken;
+        await this.deviceRepo.save(existingDeviceById);
+      } else {
+        const existingDeviceByToken = await this.deviceRepo.findOne({
+          where: {
+            expoToken: updateDetails.ExpoToken,
+          },
         });
 
-        await this.deviceRepo.save(device);
-      } else if (normalizedDeviceId) {
-        existingDevice.deviceId = normalizedDeviceId;
-        await this.deviceRepo.save(existingDevice);
+        if (!existingDeviceByToken) {
+          const device = this.deviceRepo.create({
+            expoToken: updateDetails.ExpoToken,
+            deviceId: normalizedDeviceId,
+            user: userData,
+          });
+
+          await this.deviceRepo.save(device);
+        } else if (normalizedDeviceId) {
+          existingDeviceByToken.deviceId = normalizedDeviceId;
+          await this.deviceRepo.save(existingDeviceByToken);
+        }
       }
       delete updateDetails.ExpoToken;
     }
