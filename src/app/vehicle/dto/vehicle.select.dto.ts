@@ -55,8 +55,6 @@ export const vehicleSelectWithRelation = {
   },
   shareDetails: {
     id: true,
-    vehicleId: true,
-    sharedByUserId: true,
     permission: true,
     status: true,
     createdAt: true,
