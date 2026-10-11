@@ -21,6 +21,9 @@ export class UserDevice {
   @Column({ nullable: true })
   deviceName: string;
 
+  @Column({ nullable: true })
+  osName: string;
+
   @ManyToOne(() => User, (user) => user.devices, {
     onDelete: 'CASCADE',
   })

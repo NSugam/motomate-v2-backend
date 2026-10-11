@@ -64,6 +64,7 @@ export class AuthService {
   }
 
   async login(user: LoginUserDto, res: Response, deviceInfo: DeviceInfoType) {
+    console.log(deviceInfo);
     const JWT_SECRET = env.JWT_SECRET;
     const userData = await this.userEntity.findOne({
       where: { email: user.email },
@@ -98,6 +99,7 @@ export class AuthService {
 
       if (existingDevice) {
         existingDevice.deviceName = deviceInfo.deviceName;
+        existingDevice.osName = deviceInfo.osName;
         await deviceRepository.save(existingDevice);
         return;
       }
@@ -122,6 +124,7 @@ export class AuthService {
         deviceRepository.create({
           deviceId: normalizedDeviceId,
           deviceName: deviceInfo.deviceName,
+          osName: deviceInfo.osName,
           user: lockedUser,
         }),
       );

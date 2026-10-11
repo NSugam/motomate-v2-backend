@@ -11,10 +11,15 @@ export type UserFilterType = {
 };
 
 export type DeviceInfoType = {
-  browser: UAParser.IBrowser;
+  browser: UAParser.IBrowser | null;
+  device: UAParser.IDevice;
   deviceId: string | null;
   deviceName: string;
+  manufacturer?: string | null;
+  modelName?: string | null;
+  brand?: string | null;
   os: UAParser.IOS;
-  device: UAParser.IDevice;
+  osName?: string | null;
+  osVersion?: string | null;
   ip: string;
 };
