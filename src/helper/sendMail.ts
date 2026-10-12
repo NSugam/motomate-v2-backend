@@ -9,19 +9,27 @@ interface MailOptions {
 }
 
 export const sendMail = async (options: MailOptions) => {
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+
+    auth: {
+      user: env.MAIL_USERNAME,
+      pass: env.MAIL_PASSWORD,
+    },
+
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
+  });
+
   try {
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: {
-        user: env.MAIL_USERNAME,
-        pass: env.MAIL_PASSWORD,
-      },
-      tls: {
-        rejectUnauthorized: false,
-      },
-    });
+    console.log('[SMTP] Verifying Gmail SMTP connection...');
+
+    await transporter.verify();
+
+    console.log('[SMTP] Gmail SMTP connection verified');
 
     const mailOptions = {
       from: `Motomate App <${env.MAIL_USERNAME}>`,
@@ -31,10 +39,17 @@ export const sendMail = async (options: MailOptions) => {
       html: options.html,
     };
 
-    await transporter.sendMail(mailOptions);
+    console.log('[SMTP] Sending email...');
+
+    const info = await transporter.sendMail(mailOptions);
+
+    console.log('[SMTP] Email accepted:', info.messageId);
+
     return true;
   } catch (error) {
-    console.log('Failed to send mail', error);
-    return false;
+    console.error('[SMTP] Failed to send email:', error);
+    throw error;
+  } finally {
+    transporter.close();
   }
 };
