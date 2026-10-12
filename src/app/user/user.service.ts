@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
+import { generateOTP } from 'src/helper/otp.generator';
 import { VehicleService } from 'src/app/vehicle/vehicle.service';
 import { FindAndCountFn, FindOrFailFn } from 'src/common/orm.type';
 import { generateTakeSkip } from 'src/helper/utils';
@@ -20,6 +21,8 @@ import { ChangePasswordDTO, UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { LoggedInUser, UserRoleENUM } from './user.type';
 import { UserDevice } from './entities/user.device.entity';
+import { MailingService } from '../mailing-service/mailing-service.service';
+import { generateOTPTemplate } from '../mailing-service/email.templates';
 
 @Injectable()
 export class UserService {
@@ -32,6 +35,7 @@ export class UserService {
     private readonly dataSource: DataSource,
     @InjectRepository(UserDevice)
     private deviceRepo: Repository<UserDevice>,
+    private readonly mailingService: MailingService,
   ) {}
 
   getProfile(user: LoggedInUser) {
@@ -39,6 +43,17 @@ export class UserService {
       message: 'Logged-In User Data',
       user,
     };
+  }
+
+  async sendDeviceOtp(emailId: string) {
+    const otpCode = generateOTP(6);
+    await this.mailingService.sendMail({
+      email: emailId,
+      subject: 'Your MotoMate Device Reset Verification OTP',
+      message: generateOTPTemplate('there', otpCode),
+    });
+
+    return { message: `OTP sent to ${emailId}` };
   }
 
   findAndCount: FindAndCountFn<User> = (w, s, p, o, r) => {

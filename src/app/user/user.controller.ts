@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Patch,
+  Post,
   Query,
 } from '@nestjs/common';
 import { DeviceInfoType, UserFilterType } from 'src/common/common.type';
@@ -13,6 +14,7 @@ import { OrmWhereType } from 'src/common/orm.type';
 import { GetUser, UserFilter } from 'src/decorators/get-user.decorator';
 import { ILike } from 'typeorm';
 import { RoleDto } from './dto/role-user.dto';
+import { SendDeviceOtpDTO } from './dto/send-device-otp.dto';
 import {
   ChangePasswordDTO,
   DeleteDeviceDTO,
@@ -56,6 +58,11 @@ export class UserController {
     @GetUser() user: LoggedInUser,
   ) {
     return this.usersService.deleteDevice(user.id, deviceId);
+  }
+
+  @Post('device/send-otp')
+  sendDeviceOtp(@Body() { emailId }: SendDeviceOtpDTO) {
+    return this.usersService.sendDeviceOtp(String(emailId));
   }
 
   @Get()
