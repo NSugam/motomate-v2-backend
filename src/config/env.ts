@@ -20,8 +20,9 @@ export const env = {
   DB_SCHEMA_PROD: process.env.DB_SCHEMA_PROD || 'production_schema',
   DB_SYNCHRONIZE: Boolean(process.env.DB_SYNCHRONIZE) || false,
 
-  MAIL_USERNAME: process.env.MAIL_USERNAME,
-  MAIL_PASSWORD: process.env.MAIL_PASSWORD,
+  //Resend API
+  RESEND_API_KEY: process.env.RESEND_API_KEY,
+  MAIL_FROM: process.env.MAIL_FROM,
 
   REDIS_URL: process.env.REDIS_URL,
 

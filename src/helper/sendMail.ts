@@ -1,4 +1,4 @@
-import * as nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { env } from 'src/config/env';
 
 interface MailOptions {
@@ -8,48 +8,23 @@ interface MailOptions {
   html?: string;
 }
 
+const resend = new Resend(env.RESEND_API_KEY);
+
 export const sendMail = async (options: MailOptions) => {
-  const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
-
-    auth: {
-      user: env.MAIL_USERNAME,
-      pass: env.MAIL_PASSWORD,
-    },
-
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
+  const { data, error } = await resend.emails.send({
+    from: env.MAIL_FROM,
+    to: options.email,
+    subject: options.subject,
+    text: options.text,
+    html: options.html,
   });
 
-  try {
-    console.log('[SMTP] Verifying Gmail SMTP connection...');
-
-    await transporter.verify();
-
-    console.log('[SMTP] Gmail SMTP connection verified');
-
-    const mailOptions = {
-      from: `Motomate App <${env.MAIL_USERNAME}>`,
-      to: options.email,
-      subject: options.subject,
-      text: options.text,
-      html: options.html,
-    };
-
-    console.log('[SMTP] Sending email...');
-
-    const info = await transporter.sendMail(mailOptions);
-
-    console.log('[SMTP] Email accepted:', info.messageId);
-
-    return true;
-  } catch (error) {
-    console.error('[SMTP] Failed to send email:', error);
-    throw error;
-  } finally {
-    transporter.close();
+  if (error) {
+    console.error('[Email API] Failed to send email:', error);
+    throw new Error('Email delivery failed');
   }
+
+  console.log('[Email API] Email accepted:', data?.id);
+
+  return true;
 };
