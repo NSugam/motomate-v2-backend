@@ -47,24 +47,6 @@ export class UserService {
     };
   }
 
-  // async sendDeviceOtp(emailId: string) {
-  //   const otpCode = generateOTP(6);
-  //   const normalizedEmail = emailId.trim().toLowerCase();
-  //   await this.redisService.set(
-  //     `device-reset-otp:${normalizedEmail}`,
-  //     otpCode,
-  //     15,
-  //   );
-
-  //   await this.mailingService.sendMail({
-  //     email: normalizedEmail,
-  //     subject: 'Your MotoMate Device Reset Verification OTP',
-  //     message: generateOTPTemplate('there', otpCode),
-  //   });
-
-  //   return { message: `OTP sent to ${normalizedEmail}` };
-  // }
-
   async sendDeviceOtp(emailId: string) {
     const otpCode = generateOTP(6);
     const normalizedEmail = emailId.trim().toLowerCase();
