@@ -23,6 +23,8 @@ export const env = {
   MAIL_USERNAME: process.env.MAIL_USERNAME,
   MAIL_PASSWORD: process.env.MAIL_PASSWORD,
 
+  REDIS_URL: process.env.REDIS_URL,
+
   API_NINJAS_KEY: process.env.API_NINJAS_KEY,
 
   CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,

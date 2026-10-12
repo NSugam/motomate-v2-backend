@@ -23,6 +23,7 @@ import { LoggedInUser, UserRoleENUM } from './user.type';
 import { UserDevice } from './entities/user.device.entity';
 import { MailingService } from '../mailing-service/mailing-service.service';
 import { generateOTPTemplate } from '../mailing-service/email.templates';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class UserService {
@@ -36,6 +37,7 @@ export class UserService {
     @InjectRepository(UserDevice)
     private deviceRepo: Repository<UserDevice>,
     private readonly mailingService: MailingService,
+    private readonly redisService: RedisService,
   ) {}
 
   getProfile(user: LoggedInUser) {
@@ -47,13 +49,41 @@ export class UserService {
 
   async sendDeviceOtp(emailId: string) {
     const otpCode = generateOTP(6);
+    const normalizedEmail = emailId.trim().toLowerCase();
+    await this.redisService.set(
+      `device-reset-otp:${normalizedEmail}`,
+      otpCode,
+      15,
+    );
+
     await this.mailingService.sendMail({
-      email: emailId,
+      email: normalizedEmail,
       subject: 'Your MotoMate Device Reset Verification OTP',
       message: generateOTPTemplate('there', otpCode),
     });
 
-    return { message: `OTP sent to ${emailId}` };
+    return { message: `OTP sent to ${normalizedEmail}` };
+  }
+
+  async resetDevice(email: string, otpCode: string) {
+    const normalizedEmail = email.trim().toLowerCase();
+    const key = `device-reset-otp:${normalizedEmail}`;
+    const savedOtp = await this.redisService.get(key);
+
+    if (!savedOtp || savedOtp !== otpCode) {
+      throw new BadRequestException('Invalid or expired OTP.');
+    }
+
+    const user = await this.userRepo.findOneBy({ email: normalizedEmail });
+    if (!user) throw new NotFoundException('User not found.');
+
+    await this.deviceRepo.delete({ user: { id: user.id } });
+    await this.redisService.delete(key);
+
+    return {
+      message: 'All devices reset successfully.',
+      success: true,
+    };
   }
 
   findAndCount: FindAndCountFn<User> = (w, s, p, o, r) => {

@@ -14,6 +14,7 @@ import { OrmWhereType } from 'src/common/orm.type';
 import { GetUser, UserFilter } from 'src/decorators/get-user.decorator';
 import { ILike } from 'typeorm';
 import { RoleDto } from './dto/role-user.dto';
+import { ResetDeviceDTO } from './dto/reset-device.dto';
 import { SendDeviceOtpDTO } from './dto/send-device-otp.dto';
 import {
   ChangePasswordDTO,
@@ -63,6 +64,11 @@ export class UserController {
   @Post('device/send-otp')
   sendDeviceOtp(@Body() { emailId }: SendDeviceOtpDTO) {
     return this.usersService.sendDeviceOtp(String(emailId));
+  }
+
+  @Post('device/reset')
+  resetDevice(@Body() { email, otpCode }: ResetDeviceDTO) {
+    return this.usersService.resetDevice(email, otpCode);
   }
 
   @Get()

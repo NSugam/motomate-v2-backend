@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MailingServiceModule } from '../mailing-service/mailing-service.module';
+import { RedisModule } from '../redis/redis.module';
 import { UploadModule } from '../upload/upload.module';
 import { VehicleModule } from '../vehicle/vehicle.module';
 import { UserDevice } from './entities/user.device.entity';
@@ -16,6 +17,7 @@ import { UserService } from './user.service';
     ConfigModule,
     TypeOrmModule.forFeature([User, UserDevice]),
     MailingServiceModule,
+    RedisModule,
     VehicleModule,
     UploadModule,
   ],
