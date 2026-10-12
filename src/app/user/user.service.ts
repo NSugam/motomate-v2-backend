@@ -47,22 +47,59 @@ export class UserService {
     };
   }
 
+  // async sendDeviceOtp(emailId: string) {
+  //   const otpCode = generateOTP(6);
+  //   const normalizedEmail = emailId.trim().toLowerCase();
+  //   await this.redisService.set(
+  //     `device-reset-otp:${normalizedEmail}`,
+  //     otpCode,
+  //     15,
+  //   );
+
+  //   await this.mailingService.sendMail({
+  //     email: normalizedEmail,
+  //     subject: 'Your MotoMate Device Reset Verification OTP',
+  //     message: generateOTPTemplate('there', otpCode),
+  //   });
+
+  //   return { message: `OTP sent to ${normalizedEmail}` };
+  // }
+
   async sendDeviceOtp(emailId: string) {
     const otpCode = generateOTP(6);
     const normalizedEmail = emailId.trim().toLowerCase();
-    await this.redisService.set(
-      `device-reset-otp:${normalizedEmail}`,
-      otpCode,
-      15,
-    );
 
-    await this.mailingService.sendMail({
-      email: normalizedEmail,
-      subject: 'Your MotoMate Device Reset Verification OTP',
-      message: generateOTPTemplate('there', otpCode),
-    });
+    console.log('[OTP] Starting OTP process');
 
-    return { message: `OTP sent to ${normalizedEmail}` };
+    try {
+      console.log('[OTP] Saving OTP to Redis...');
+
+      await this.redisService.set(
+        `device-reset-otp:${normalizedEmail}`,
+        otpCode,
+        15,
+      );
+
+      console.log('[OTP] OTP saved to Redis successfully');
+
+      console.log('[OTP] Sending email...');
+
+      await this.mailingService.sendMail({
+        email: normalizedEmail,
+        subject: 'Your MotoMate Device Reset Verification OTP',
+        message: generateOTPTemplate('there', otpCode),
+      });
+
+      console.log('[OTP] Email sent successfully');
+
+      return {
+        message: `OTP sent to ${normalizedEmail}`,
+      };
+    } catch (error) {
+      console.error('[OTP] Error:', error);
+
+      throw error;
+    }
   }
 
   async resetDevice(email: string, otpCode: string) {
