@@ -23,4 +23,14 @@ export class PartsChangedFilterDTO extends optionalPagiSearchTermDTO {
   @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
   checkReminder?: boolean;
+
+  @ApiPropertyOptional({
+    default: false,
+    description: 'Include reminders that are neither due nor upcoming',
+    type: Boolean,
+  })
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  includeAll?: boolean;
 }

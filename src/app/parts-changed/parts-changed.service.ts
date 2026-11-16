@@ -209,7 +209,11 @@ export class PartsChangedService {
     return [data, data.length];
   }
 
-  async getDuePartsReminders(vehicleId: string, currentOdo: number) {
+  async getDuePartsReminders(
+    vehicleId: string,
+    currentOdo: number,
+    includeAll = false,
+  ) {
     const [data] = await this.getLatestServicingParts(
       vehicleId,
       undefined,
@@ -278,7 +282,7 @@ export class PartsChangedService {
               ? 'ODO'
               : 'DATE';
 
-        if (!isDue && !isUpcoming) return null;
+        if (!includeAll && !isDue && !isUpcoming) return null;
 
         return {
           type,

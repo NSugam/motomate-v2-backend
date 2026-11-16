@@ -85,9 +85,14 @@ export class PartsChangedController {
   @Get('due-parts-reminders')
   @ApiOperation({ summary: 'Find Due Parts Reminders' })
   getDuePartsReminders(
+    @Query() { includeAll }: PartsChangedFilterDTO,
     @UserFilter() { vehicleId, currentOdo }: UserFilterType,
   ) {
-    return this.partsChangedService.getDuePartsReminders(vehicleId, currentOdo);
+    return this.partsChangedService.getDuePartsReminders(
+      vehicleId,
+      currentOdo,
+      includeAll,
+    );
   }
 
   @Get('part/:id')
