@@ -48,7 +48,7 @@ export class UserService {
   }
 
   async sendDeviceOtp(emailId: string) {
-    const otpCode = generateOTP(6);
+    const otpCode = generateOTP(6, 'number');
     const normalizedEmail = emailId.trim().toLowerCase();
 
     console.log('[OTP] Starting OTP process');
