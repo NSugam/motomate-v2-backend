@@ -31,4 +31,7 @@ export class UserDevice {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  lastLoginAt: Date;
 }

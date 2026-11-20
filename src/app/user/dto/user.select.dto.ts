@@ -23,6 +23,7 @@ export const userSelectFields = {
   devices: {
     id: true,
     createdAt: true,
+    lastLoginAt: true,
     deviceId: true,
     deviceName: true,
     expoToken: true,

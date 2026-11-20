@@ -100,6 +100,7 @@ export class AuthService {
       if (existingDevice) {
         existingDevice.deviceName = deviceInfo.deviceName;
         existingDevice.osName = deviceInfo.osName;
+        existingDevice.lastLoginAt = new Date();
         await deviceRepository.save(existingDevice);
         return;
       }
@@ -125,6 +126,7 @@ export class AuthService {
           deviceId: normalizedDeviceId,
           deviceName: deviceInfo.deviceName,
           osName: deviceInfo.osName,
+          lastLoginAt: new Date(),
           user: lockedUser,
         }),
       );
