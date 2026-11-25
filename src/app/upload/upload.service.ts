@@ -11,6 +11,7 @@ import { FindAndCountFn } from 'src/common/orm.type';
 import { generateTakeSkip } from 'src/helper/utils';
 import { Repository } from 'typeorm';
 import { LoggedInUser } from '../user/user.type';
+import { DeleteCloudinaryImageDto } from './dto/upload.dto';
 import { Upload } from './entities/upload.entity';
 import { UploadFormatENUM, UploadTypeENUM } from './upload.type';
 
@@ -120,8 +121,8 @@ export class UploadService {
     };
   }
 
-  async deleteFromCloudinary(publicId: string) {
-    await this.cloudinary.uploader.destroy(publicId);
+  async deleteFromCloudinary(id: DeleteCloudinaryImageDto) {
+    await this.cloudinary.uploader.destroy(id.publicId);
 
     return {
       message: 'Image deleted successfully',

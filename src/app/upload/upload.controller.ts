@@ -71,8 +71,8 @@ export class UploadController {
   }
 
   @Delete('public/image')
-  deleteFromCloudinary(@Body() { publicId }: DeleteCloudinaryImageDto) {
-    return this.uploadService.deleteFromCloudinary(publicId);
+  deleteFromCloudinary(@Body() id: DeleteCloudinaryImageDto) {
+    return this.uploadService.deleteFromCloudinary(id);
   }
 
   @Delete(':id')
