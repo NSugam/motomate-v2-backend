@@ -87,6 +87,8 @@ export class AppModule implements NestModule {
       .exclude(
         { path: 'health-check', method: RequestMethod.HEAD },
         { path: 'health-check', method: RequestMethod.GET },
+        { path: 'upload/public/image', method: RequestMethod.POST },
+        { path: 'upload/public/image', method: RequestMethod.DELETE },
         { path: 'api/user/permanent', method: RequestMethod.DELETE },
         { path: 'auth/login', method: RequestMethod.POST },
         { path: 'user/device/send-otp', method: RequestMethod.POST },
