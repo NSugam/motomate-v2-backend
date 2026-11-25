@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -15,7 +16,7 @@ import { OrmWhereType } from 'src/common/orm.type';
 import { GetUser, UserFilter } from 'src/decorators/get-user.decorator';
 import { ILike } from 'typeorm';
 import { LoggedInUser } from '../user/user.type';
-import { UploadImageDto } from './dto/upload.dto';
+import { DeleteCloudinaryImageDto, UploadImageDto } from './dto/upload.dto';
 import { Upload } from './entities/upload.entity';
 import { UploadService } from './upload.service';
 
@@ -54,6 +55,24 @@ export class UploadController {
     @GetUser() user: LoggedInUser,
   ) {
     return this.uploadService.uploadAndSave(file, user);
+  }
+
+  @Post('public/image')
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ type: UploadImageDto })
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadToCloudinary(@UploadedFile() file: Express.Multer.File) {
+    const result = await this.uploadService.uploadImage(file, 'public-uploads');
+    return {
+      fileName: result.original_filename,
+      url: result.secure_url,
+      publicId: result.public_id,
+    };
+  }
+
+  @Delete('public/image')
+  deleteFromCloudinary(@Body() { publicId }: DeleteCloudinaryImageDto) {
+    return this.uploadService.deleteFromCloudinary(publicId);
   }
 
   @Delete(':id')

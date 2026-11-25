@@ -42,7 +42,10 @@ export class UploadService {
     });
   };
 
-  async uploadImage(file: Express.Multer.File): Promise<UploadApiResponse> {
+  async uploadImage(
+    file: Express.Multer.File,
+    folder = 'uploads',
+  ): Promise<UploadApiResponse> {
     if (!file?.buffer) {
       throw new BadRequestException('Invalid file');
     }
@@ -62,7 +65,7 @@ export class UploadService {
 
     return new Promise((resolve, reject) => {
       const uploadStream = this.cloudinary.uploader.upload_stream(
-        { folder: 'uploads' },
+        { folder },
         (error, result) => {
           if (error || !result) {
             return reject(
@@ -114,6 +117,14 @@ export class UploadService {
 
     return {
       message: 'File deleted successfully',
+    };
+  }
+
+  async deleteFromCloudinary(publicId: string) {
+    await this.cloudinary.uploader.destroy(publicId);
+
+    return {
+      message: 'Image deleted successfully',
     };
   }
 
