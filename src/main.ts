@@ -22,6 +22,7 @@ async function bootstrap() {
       'https://motomate.cbtech.com.np',
       'https://motomate.neupanesugam.com.np',
       'https://www.neupanesugam.com.np',
+      'https://spendify-backend.vercel.app',
     ],
     credentials: true,
   });
